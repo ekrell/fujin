@@ -35,7 +35,6 @@ def getVectorSum(us, vs, weights):
     numVectors = len(us)
 
     for i in range(numVectors):
-        print (us[i], vs[i])
         utotal = utotal + weights[i] * us[i]
         vtotal = vtotal + weights[i] * vs[i]
 
@@ -69,23 +68,18 @@ def getOutcome(move, us, vs, weights, traveler):
 
     # Get resultant vector of all weighted world sources
     uw, vw = getVectorSum(us, vs, weights)
-    print("a", uw, vw)
 
     # Break traveler magnitude, direction into vector
     ut, vt = magdir2uv(traveler["speed_cps"], traveler["action2radians"][move])
-    print("b", ut, vt)
 
     # Get vector difference (required applied force)
     ua, va = getVectorDiff([uw, ut], [vw, vt], [1, 1])
-    print("c", ua, va)
 
     # Combine applied u, v to get mag, dir
     maga, dira = uv2magdir(ua, va)
-    print("d", maga, dira)
 
     # Calculate work
     work = maga  # Proportional to magnitude the speed is 'per cell'
-    print ("e", work)
 
     return work
 
@@ -103,13 +97,117 @@ def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights):
                     world_actionspace["uactions"][col], world_actionspace["vactions"][col],
                     weights, traveler)
 
-    printGame(game)
+    game = np.array(game)
 
     return game
 
 
+def solve_williams(payoff_matrix, iterations=200):
+    ''' 
+    Source: http://code.activestate.com/recipes/496825-game-theory-payoff-matrix-solver/
+
+    Approximate the strategy oddments for 2 person zero-sum games of perfect information.
+
+    Applies the iterative solution method described by J.D. Williams in his classic
+    book, The Complete Strategyst, ISBN 0-486-25101-2.   See chapter 5, page 180 for details. 
+    '''
+
+    from operator import add, neg
+    'Return the oddments (mixed strategy ratios) for a given payoff matrix'
+    transpose = zip(*payoff_matrix)
+    numrows = len(payoff_matrix)
+    numcols = len(transpose)
+    row_cum_payoff = [0] * numrows
+    col_cum_payoff = [0] * numcols
+    colpos = range(numcols)
+    rowpos = map(neg, xrange(numrows))
+    colcnt = [0] * numcols
+    rowcnt = [0] * numrows
+    active = 0
+    for i in xrange(iterations):
+        rowcnt[active] += 1        
+        col_cum_payoff = map(add, payoff_matrix[active], col_cum_payoff)
+        active = min(zip(col_cum_payoff, colpos))[1]
+        colcnt[active] += 1       
+        row_cum_payoff = map(add, transpose[active], row_cum_payoff)
+        active = -max(zip(row_cum_payoff, rowpos))[1]
+    value_of_game = (max(row_cum_payoff) + min(col_cum_payoff)) / 2.0 / iterations
+    return np.array(rowcnt).astype(float) / iterations, np.array(colcnt).astype(float) / iterations
+
+def solve_gambit(game):
+    import gambit
+
+    m = game.shape[0]
+    n = game.shape[1]
+
+    g = gambit.Game.new_table([m, n])
+    g.title = "solve cell"
+    g.players[0].label = "traveler"
+    g.players[1].label = "fujin"
+
+    # Populate game
+    for row in range(m):
+        for col in range(n):
+            g[row, col][0] = int(game[row][col] * 1000)
+            g[row, col][1] = (-1) * int(game[row][col] * 1000)
+
+    solver = gambit.nash.ExternalEnumMixedSolver()
+    solution = solver.solve(g)
+    solution = np.asarray(solution[0])
+
+    y = solution[0:n-1]
+    z = solution[n-1:]
+
+    return y, z
+
+def solveGame(game, method = 0):
+
+    ''' 
+       methods
+       ------------
+       0 : williams
+       1 : gambit
+    '''
+
+    if method == 0:
+        y, z  = solve_williams(game)
+    if method == 1:
+        y, z  = solve_gambit(game)
+
+    # Convert to pure policy
+    i = np.argmax(y)
+    j = np.argmax(z)
+    v = game[i][j]
+
+    return (y, z, i, j, v)
+
+
 def printGame(game):
-    for g in game:
-        print(g)
+    for row in range(len(game)):
+        for col in range(len(game[0])):
+            print("{0:.2f}".format(game[row][col])),
+        print ("")
+
+def printSolution(solution, name = ""):
+    print("Nash Solution " + name)
+    print("Player 1:" )
+    print("    Pure sucurity policy: {}".format(solution[2]))
+    print("    Security policy: ")
+    print("    "),
+    for num in solution[0]:
+        print("{} ".format(num)),
+    print("")
+    print("Player 1:" )
+    print("    Pure sucurity policy: {}".format(solution[3]))
+    print("    Security policy: ")
+    print("    "),
+    for num in solution[1]:
+        print("{} ".format(num)),
+    print("")
+    print("Security level: {}".format(solution[4]))
+
+
+
+
 
 

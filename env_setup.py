@@ -182,9 +182,9 @@ def getComponentGrid(componentImageFile):
     # value of the input image files determined
     # the proportion of the input maxval at each cell
 
-    imgarray = np.asarray(Image.open(componentImageFile).convert('LA'))
+    imgarray = np.array(Image.open(componentImageFile).convert('LA'))
 
-    compgrid = np.zeros((imgarray.shape[0], imgarray.shape[0]))
+    compgrid = np.zeros((imgarray.shape[0], imgarray.shape[1]))
 
     for row in range(len(compgrid)):
         for col in range(len(compgrid[0])):
@@ -205,11 +205,6 @@ def getVectorGrids(ucomponentImageFiles, vcomponentImageFiles):
         vgrids[i] = getComponentGrid(ucomponentImageFiles[i])
 
     return ugrids, vgrids
-
-
-
-
-
 
 
 

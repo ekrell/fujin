@@ -15,11 +15,16 @@ def main():
 
     ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"], settings["vcomponents"])
 
-
-
     # Solve a single cell (without considering path)
-    solver_tools.getGameForCell(250, 250, traveler, ugrids, vgrids, settings["errors"], settings["weights"])
+    r, c = 50, 50
+    g = solver_tools.getGameForCell(r, c, traveler, ugrids, vgrids, settings["errors"], settings["weights"])
+    solver_tools.printGame(g)
+    
+    solution_williams = solver_tools.solveGame(g, 0)
+    solution_gambit   = solver_tools.solveGame(g, 1)
 
+    solver_tools.printSolution(solution_williams, "williams")
+    solver_tools.printSolution(solution_gambit, "gambit")
 
 
 
