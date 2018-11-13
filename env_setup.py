@@ -14,8 +14,10 @@ def parseOptions():
                  "errors"     : None,
                  "start"      : None,
                  "target"     : None,
+                 "files"      : { "nashgrid" : None,
+                                  "cost2go" : None,
+                                },
                }
-
 
     # Define options
     parser = OptionParser()
@@ -33,6 +35,10 @@ def parseOptions():
             help = "start position as row,col")
     parser.add_option("-t", "--target",        dest = "target",       metavar = "TARGET",
             help = "target position as row,col")
+    parser.add_option("-n", "--nashfile",      dest = "nashfile",     metavar = "NASHFILE",
+            help = "file to store grid with nash solutions for each cell")
+    parser.add_option("-c", "--costfile",      dest = "costfile",     metavar = "COSTFILE",
+            help = "file to store grid with traveler action costs for each cell")
 
     # Get options
     (options, args) = parser.parse_args()
@@ -40,10 +46,15 @@ def parseOptions():
     # Check that required arguments exist
     if     options.occupancy is None \
         or options.start     is None \
-        or options.target    is None:
+        or options.target    is None \
+        or options.nashfile  is None \
+        or options.costfile  is None:
 
         (options, args, settings) = None, None, None
         return (options, args, settings)
+
+    settings["files"]["nashgrid"] = options.nashfile
+    settings["files"]["cost2go"]  = options.costfile
 
     settings["occupancy"] = options.occupancy.split(",")
 

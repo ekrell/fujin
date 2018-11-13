@@ -103,13 +103,13 @@ def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights):
 
 
 def solve_williams(payoff_matrix, iterations=200):
-    ''' 
+    '''
     Source: http://code.activestate.com/recipes/496825-game-theory-payoff-matrix-solver/
 
     Approximate the strategy oddments for 2 person zero-sum games of perfect information.
 
     Applies the iterative solution method described by J.D. Williams in his classic
-    book, The Complete Strategyst, ISBN 0-486-25101-2.   See chapter 5, page 180 for details. 
+    book, The Complete Strategyst, ISBN 0-486-25101-2.   See chapter 5, page 180 for details.
     '''
 
     from operator import add, neg
@@ -125,10 +125,10 @@ def solve_williams(payoff_matrix, iterations=200):
     rowcnt = [0] * numrows
     active = 0
     for i in xrange(iterations):
-        rowcnt[active] += 1        
+        rowcnt[active] += 1
         col_cum_payoff = map(add, payoff_matrix[active], col_cum_payoff)
         active = min(zip(col_cum_payoff, colpos))[1]
-        colcnt[active] += 1       
+        colcnt[active] += 1
         row_cum_payoff = map(add, transpose[active], row_cum_payoff)
         active = -max(zip(row_cum_payoff, rowpos))[1]
     value_of_game = (max(row_cum_payoff) + min(col_cum_payoff)) / 2.0 / iterations
@@ -162,7 +162,7 @@ def solve_gambit(game):
 
 def solveGame(game, method = 0):
 
-    ''' 
+    '''
        methods
        ------------
        0 : williams
@@ -207,6 +207,37 @@ def printSolution(solution, name = ""):
     print("Security level: {}".format(solution[4]))
 
 
+
+def getNashGrid(traveler, occgrid, ugrids, vgrids, errors, weights):
+
+    nashgrid = np.zeros(occgrid.shape) - np.inf
+    m, n = nashgrid.shape
+
+
+    for row in range(m):
+        for col in range(n):
+            if (occgrid[row][col] == 0):
+                g = getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights)
+                solution = solveGame(g, 0)
+                nashgrid[row][col] = solution[4]
+    return nashgrid
+
+
+
+
+def getCost2go(traveler, occgrid, ugrids, vgrids, errors, weights):
+
+    def haltCost(row, col, target_row, target_col):
+
+        # INF cost if not halting at target
+        if  row != traveler["target"][0] or \
+            col != traveler["target"][0]:
+                return np.inf
+        else: # No cost to halt at target
+            return 0
+
+
+    #def floodAssignCost(row, col, game, cost2go)
 
 
 
