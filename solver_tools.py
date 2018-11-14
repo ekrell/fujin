@@ -225,19 +225,110 @@ def getNashGrid(traveler, occgrid, ugrids, vgrids, errors, weights):
 
 
 
-def getCost2go(traveler, occgrid, ugrids, vgrids, errors, weights):
+def getCost2go(traveler, nashgrid, occgrid, errors, weights):
 
     def haltCost(row, col, target_row, target_col):
 
         # INF cost if not halting at target
-        if  row != traveler["target"][0] or \
-            col != traveler["target"][0]:
+        if  row != target_row or \
+            col != target_col:
                 return np.inf
         else: # No cost to halt at target
             return 0
 
 
-    #def floodAssignCost(row, col, game, cost2go)
+    def floodAssignCost(row, col, nashgrid, cost2go, actiongrid, traveler):
+        stack = set(((row, col),))
+
+        visitedgrid = np.zeros(nashgrid.shape)
+
+        while stack:
+            row, col = stack.pop()
+
+            # If not obstacle..
+            if nashgrid[row][col] > - np.inf:
+
+                # Assign
+                mincost = np.inf
+                action = None
+                if row > 0:
+                    v = cost2go[row - 1][col]
+                    if v < mincost:
+                        mincost = v
+                        action  = "U"
+                if row < len(nashgrid) - 1:
+                    v = cost2go[row + 1][col]
+                    if v < mincost:
+                        mincost = v
+                        action  = "D"
+                if col > 0:
+                    v = cost2go[row][col - 1]
+                    if v < mincost:
+                        mincost = v
+                        action  = "L"
+                if col < len(nashgrid[0]) - 1:
+                    v = cost2go[row][col + 1]
+                    if v < mincost:
+                        mincost = v
+                        action  = "R"
+                v = haltCost(row, col, traveler["target"][0], traveler["target"][1])
+                if v < mincost:
+                    mincost = v
+                    action  = "H"
+
+                if row == traveler["target"][0] and \
+                   col == traveler["target"][1]:
+                    cost2go[row][col] = mincost
+                else:
+                    cost2go[row][col] = mincost + nashgrid[row][col]
+
+                actiongrid[row][col] = action
+
+                visitedgrid[row][col] = 1
+
+                # recursion
+                if row > 0:
+                    if visitedgrid[row - 1][col] == 0:
+                       stack.add((row - 1, col))
+                if row < len(nashgrid) - 1:
+                    if visitedgrid[row + 1][col] == 0:
+                        stack.add((row + 1, col))
+                if col > 0:
+                    if visitedgrid[row][col - 1] == 0:
+                        stack.add((row, col - 1))
+                if col < len(nashgrid[0]) - 1:
+                    if visitedgrid[row][col + 1] == 0:
+                        stack.add((row, col + 1))
+
+
+    m, n = nashgrid.shape
+
+    cost2go = np.zeros(occgrid.shape) + np.inf
+    actiongrid = [["x" for col in range(n)] for row in range(m)]
+
+    floodAssignCost(traveler["target"][0], traveler["target"][1], nashgrid, cost2go, actiongrid, traveler)
+
+    print(cost2go)
+
+    return cost2go, actiongrid
+
+
+
+def writeActiongrid(actiongrid, actionfile):
+
+    numrows = len(actiongrid)
+    numcols = len(actiongrid[0])
+
+    action2symbol = { "U" : "^", "D" : "v", "L" : "<", "R" : ">",
+                      "H" : "#", "x" : "-", }
+
+    af = open(actionfile, 'w')
+    for row in range(numrows):
+        for col in range(numcols):
+            af.write("%s" % action2symbol[actiongrid[row][col]])
+        af.write("\n")
+
+    af.close()
 
 
 

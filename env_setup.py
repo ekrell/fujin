@@ -39,22 +39,29 @@ def parseOptions():
             help = "file to store grid with nash solutions for each cell")
     parser.add_option("-c", "--costfile",      dest = "costfile",     metavar = "COSTFILE",
             help = "file to store grid with traveler action costs for each cell")
+    parser.add_option("-a", "--actionfile",    dest = "actionfile",   metavar = "ACTIONFILE",
+            help = "file to store grid with traveler actions for each cell")
+    parser.add_option("-r", "--reuse",         dest = "reuse",        metavar = "REUSE",
+            action = "store_true",             default = False,
+            help = "reuse existing nashgrid")
 
     # Get options
     (options, args) = parser.parse_args()
 
     # Check that required arguments exist
-    if     options.occupancy is None \
-        or options.start     is None \
-        or options.target    is None \
-        or options.nashfile  is None \
-        or options.costfile  is None:
+    if     options.occupancy  is None \
+        or options.start      is None \
+        or options.target     is None \
+        or options.nashfile   is None \
+        or options.costfile   is None \
+        or options.actionfile is None:
 
         (options, args, settings) = None, None, None
         return (options, args, settings)
 
-    settings["files"]["nashgrid"] = options.nashfile
-    settings["files"]["cost2go"]  = options.costfile
+    settings["files"]["nashgrid"]   = options.nashfile
+    settings["files"]["cost2go"]    = options.costfile
+    settings["files"]["actiongrid"] = options.actionfile
 
     settings["occupancy"] = options.occupancy.split(",")
 
