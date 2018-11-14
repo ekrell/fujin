@@ -225,7 +225,7 @@ def getNashGrid(traveler, occgrid, ugrids, vgrids, errors, weights):
 
 
 
-def getCost2go(traveler, nashgrid, occgrid, errors, weights):
+def getCost2go(traveler, nashgrid, occgrid, errors, weights, iterations = 100):
 
     def haltCost(row, col, target_row, target_col):
 
@@ -278,9 +278,11 @@ def getCost2go(traveler, nashgrid, occgrid, errors, weights):
 
                 if row == traveler["target"][0] and \
                    col == traveler["target"][1]:
-                    cost2go[row][col] = mincost
+                    cost2go[row][col] = 0
+                    action = "H"
                 else:
-                    cost2go[row][col] = mincost + nashgrid[row][col]
+                    #cost2go[row][col] = mincost + 1                        # <- uncomment to ignore work
+                    cost2go[row][col] = mincost + (10) * nashgrid[row][col] # <- uncomment to include work
 
                 actiongrid[row][col] = action
 
@@ -306,7 +308,8 @@ def getCost2go(traveler, nashgrid, occgrid, errors, weights):
     cost2go = np.zeros(occgrid.shape) + np.inf
     actiongrid = [["x" for col in range(n)] for row in range(m)]
 
-    floodAssignCost(traveler["target"][0], traveler["target"][1], nashgrid, cost2go, actiongrid, traveler)
+    for i in range(iterations):
+        floodAssignCost(traveler["target"][0], traveler["target"][1], nashgrid, cost2go, actiongrid, traveler)
 
     print(cost2go)
 

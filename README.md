@@ -18,7 +18,8 @@ __Example A: a single environment vector acts against the traveler__
                             -s 0,0 \                           # Traveler start coordinates
                             -t 250,250 \                       # Traveler goal coordinates
                             -n EXP1_nash.txt \                 # File to save nash solution grid
-                            -c EXP1_cost2go.txt                # File to save cost2go solution grid
+                            -c EXP1_cost2go.txt \              # File to save cost2go solution grid
+                            -a EXP1_actions.txt                # FIle to save action grid
 
 __Example B: two vectors, wind and water act against the traveler__
 
@@ -29,6 +30,7 @@ __Example B: two vectors, wind and water act against the traveler__
                             -e .5,0.15 \
                             -s 0,0 \
                             -t 250,250 \
-                            -n EXP1_nash2.txt \
-                            -c EXP1_cost2go.txt
+                            -n EXP2_nash2.txt \
+                            -c EXP2_cost2go.txt \
+                            -a EXP2_actions
 
