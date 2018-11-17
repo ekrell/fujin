@@ -7,7 +7,7 @@ def main():
     options, args, settings = env_setup.parseOptions()
     speed_cps = 10 # 10 cells per second
 
-    traveler = env_setup.getTraveler(settings["start"], settings["target"], speed_cps, "8way")
+    traveler = env_setup.getTraveler(settings["start"], settings["target"], speed_cps, "4way")
 
     env_setup.printEnv(settings)
 
@@ -24,17 +24,8 @@ def main():
     #solver_tools.printSolution(solution_williams, "williams")
     #solver_tools.printSolution(solution_gambit, "gambit")
 
-    if options.reuse == False:
-        # Solve each cell -> generate nash grid
-        nashgrid = solver_tools.getNashGrid(traveler, occgrid, ugrids, vgrids,
-                                  settings["errors"], settings["weights"])
-        # Save nash grid
-        np.savetxt(settings["files"]["nashgrid"], nashgrid)
-    else:
-        nashgrid = np.loadtxt(settings["files"]["nashgrid"])
-
     # Assign costs -> generate cost2go
-    cost2go, actiongrid = solver_tools.getCost2go(traveler, nashgrid, occgrid, settings["errors"], settings["weights"])
+    cost2go, actiongrid = solver_tools.getCost2go(traveler, occgrid, ugrids, vgrids, settings["errors"], settings["weights"])
     # Save cost2go
     np.savetxt(settings["files"]["cost2go"], cost2go)
 

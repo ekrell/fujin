@@ -3,7 +3,6 @@ import numpy as np
 import itertools
 import time
 
-
 def getWorldActionsForCell(row, col, ugrids, vgrids, errors):
 
     numVectors = len(ugrids)
@@ -24,6 +23,7 @@ def getWorldActionsForCell(row, col, ugrids, vgrids, errors):
                           "vactions"   : uactionspace,
                           "num"        : numActions,
                         }
+
     return world_actionspace
 
 
@@ -64,7 +64,7 @@ def uv2magdir(u, v):
     d = atan2(v, u)
     return m, d
 
-def getOutcome(move, us, vs, weights, traveler):
+def getOutcome(move, us, vs, weights, traveler, cost2go = None, row = None, col = None):
 
     # Get resultant vector of all weighted world sources
     uw, vw = getVectorSum(us, vs, weights)
@@ -80,22 +80,45 @@ def getOutcome(move, us, vs, weights, traveler):
 
     # Calculate work
     work = maga  # Proportional to magnitude the speed is 'per cell'
+    # Dynamic programming: include cost2go
+    if cost2go is not None and row is not None and col is not None:
+
+        if move == "U":
+            if row > 0:
+                work = work + cost2go[row - 1][col]
+            else:
+                work = work + 100000000000
+        if move == "D": 
+            if row < len(cost2go) - 1:
+                work = work + cost2go[row + 1][col]
+            else:
+                work = work + 100000000000
+        if move == "L":
+            if col > 0:
+                work = work + cost2go[row][col - 1]
+            else:
+                work = work + 100000000000
+        if move == "R":
+            if col < len(cost2go[0]) - 1:
+                work = work + cost2go[row][col + 1]
+            else:
+                work = work + 100000000000
+        if move == "H":
+            work = 100000000000
 
     return work
 
-
-
-def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights):
+def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, cost2go = None):
 
     world_actionspace = getWorldActionsForCell(row, col, ugrids, vgrids, errors)
 
     game = [[0 for wa in range(world_actionspace["num"])] for ta in traveler["actionspace"]]
 
-    for row in range(len(game)):
-        for col in range(len(game[0])):
-            game[row][col] = getOutcome(traveler["actionspace"][row],
-                    world_actionspace["uactions"][col], world_actionspace["vactions"][col],
-                    weights, traveler)
+    for r in range(len(game)):
+        for c in range(len(game[0])):
+            game[r][c] = getOutcome(traveler["actionspace"][r],
+                    world_actionspace["uactions"][c], world_actionspace["vactions"][c],
+                    weights, traveler, cost2go, row, col)
 
     game = np.array(game)
 
@@ -111,6 +134,8 @@ def solve_williams(payoff_matrix, iterations=200):
     Applies the iterative solution method described by J.D. Williams in his classic
     book, The Complete Strategyst, ISBN 0-486-25101-2.   See chapter 5, page 180 for details.
     '''
+
+    payoff_matrix = (-1) * payoff_matrix
 
     from operator import add, neg
     'Return the oddments (mixed strategy ratios) for a given payoff matrix'
@@ -137,6 +162,9 @@ def solve_williams(payoff_matrix, iterations=200):
 def solve_gambit(game):
     import gambit
 
+    #game = (-1) * np.array([ [10, 0], [0, 0] ])
+    game = game
+
     m = game.shape[0]
     n = game.shape[1]
 
@@ -155,8 +183,8 @@ def solve_gambit(game):
     solution = solver.solve(g)
     solution = np.asarray(solution[0])
 
-    y = solution[0:n-1]
-    z = solution[n-1:]
+    y = solution[0:m]
+    z = solution[m:m+n]
 
     return y, z
 
@@ -207,25 +235,7 @@ def printSolution(solution, name = ""):
     print("Security level: {}".format(solution[4]))
 
 
-
-def getNashGrid(traveler, occgrid, ugrids, vgrids, errors, weights):
-
-    nashgrid = np.zeros(occgrid.shape) - np.inf
-    m, n = nashgrid.shape
-
-
-    for row in range(m):
-        for col in range(n):
-            if (occgrid[row][col] == 0):
-                g = getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights)
-                solution = solveGame(g, 0)
-                nashgrid[row][col] = solution[4]
-    return nashgrid
-
-
-
-
-def getCost2go(traveler, nashgrid, occgrid, errors, weights, iterations = 100):
+def getCost2go(traveler, occgrid, ugrids, vgrids, errors, weights, iterations = 5):
 
     def haltCost(row, col, target_row, target_col):
 
@@ -237,81 +247,53 @@ def getCost2go(traveler, nashgrid, occgrid, errors, weights, iterations = 100):
             return 0
 
 
-    def floodAssignCost(row, col, nashgrid, cost2go, actiongrid, traveler):
+    def floodAssignCost(row, col, occgrid, ugrids, vgrids, errors, weights, cost2go, actiongrid, traveler):
         stack = set(((row, col),))
 
-        visitedgrid = np.zeros(nashgrid.shape)
+        visitedgrid = np.zeros(occgrid.shape)
 
         while stack:
             row, col = stack.pop()
 
             # If not obstacle..
-            if nashgrid[row][col] > - np.inf:
-
+            if occgrid[row][col] == 0:
                 # Assign
-                mincost = np.inf
-                action = None
-                if row > 0:
-                    v = cost2go[row - 1][col]
-                    if v < mincost:
-                        mincost = v
-                        action  = "U"
-                if row < len(nashgrid) - 1:
-                    v = cost2go[row + 1][col]
-                    if v < mincost:
-                        mincost = v
-                        action  = "D"
-                if col > 0:
-                    v = cost2go[row][col - 1]
-                    if v < mincost:
-                        mincost = v
-                        action  = "L"
-                if col < len(nashgrid[0]) - 1:
-                    v = cost2go[row][col + 1]
-                    if v < mincost:
-                        mincost = v
-                        action  = "R"
-                v = haltCost(row, col, traveler["target"][0], traveler["target"][1])
-                if v < mincost:
-                    mincost = v
-                    action  = "H"
-
                 if row == traveler["target"][0] and \
                    col == traveler["target"][1]:
-                    cost2go[row][col] = 0
-                    action = "H"
+                    cost2go[row][col]    = 0
+                    actiongrid[row][col] = "H"
                 else:
-                    #cost2go[row][col] = mincost + 1                        # <- uncomment to ignore work
-                    cost2go[row][col] = mincost + (10) * nashgrid[row][col] # <- uncomment to include work
-
-                actiongrid[row][col] = action
-
+                    g = getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, cost2go)
+                    solution             = solveGame(g, 0)
+                    #print(solution)
+                    #print(traveler["actionspace"][solution[2]])
+                    #exit()
+                    cost2go[row][col]    = solution[4]
+                    actiongrid[row][col] = traveler["actionspace"][solution[2]]
                 visitedgrid[row][col] = 1
 
-                # recursion
                 if row > 0:
                     if visitedgrid[row - 1][col] == 0:
                        stack.add((row - 1, col))
-                if row < len(nashgrid) - 1:
+                if row < len(occgrid) - 1:
                     if visitedgrid[row + 1][col] == 0:
                         stack.add((row + 1, col))
                 if col > 0:
                     if visitedgrid[row][col - 1] == 0:
                         stack.add((row, col - 1))
-                if col < len(nashgrid[0]) - 1:
+                if col < len(occgrid[0]) - 1:
                     if visitedgrid[row][col + 1] == 0:
                         stack.add((row, col + 1))
 
+    m, n = occgrid.shape
 
-    m, n = nashgrid.shape
-
-    cost2go = np.zeros(occgrid.shape) + np.inf
+    cost2go = np.zeros(occgrid.shape) + 100000000000
     actiongrid = [["x" for col in range(n)] for row in range(m)]
 
     for i in range(iterations):
-        floodAssignCost(traveler["target"][0], traveler["target"][1], nashgrid, cost2go, actiongrid, traveler)
-
-    print(cost2go)
+        print("iteration: ", i)
+        floodAssignCost(traveler["target"][0], traveler["target"][1], occgrid, 
+               ugrids, vgrids, errors, weights, cost2go, actiongrid, traveler)
 
     return cost2go, actiongrid
 
