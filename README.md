@@ -34,3 +34,18 @@ __Example B: two vectors, wind and water act against the traveler__
                             -c EXP2_cost2go.txt \
                             -a EXP2_actions
 
+
+### Todo
+
+- [ ] Accept geotiff
+- [ ] Accept txt numpy
+- [ ] Accept grid of errors
+- [ ] Accept grid of weights
+- [ ] Solver: Nashpy
+- [ ] Solver: quadprog
+- [ ] Solver: CVXOPT
+- [ ] Solver: gambit
+- [ ] Measure solver results
+- [ ] Compare solver results
+- [ ] Decide output format
+- [ ] Convert to waypoints
