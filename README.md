@@ -18,7 +18,7 @@ __Example A: a single environment vector acts against the traveler__
                             -s 0,0 \                           # Traveler start coordinates
                             -t 250,250 \                       # Traveler goal coordinates
                             -c EXP1_cost2go.txt \              # File to save cost2go solution grid
-                            -a EXP1_actions.txt                # FIle to save action grid
+                            -a EXP1_actions.txt                # File to save action grid
 
 __Example B: two vectors, wind and water act against the traveler__
 
@@ -37,8 +37,8 @@ __Example B: two vectors, wind and water act against the traveler__
 
 - [ ] Accept geotiff
 - [ ] Accept txt numpy
-- [ ] Accept grid of errors
-- [ ] Accept grid of weights
+- [X] Accept grid of errors
+- [X] Accept grid of weights
 - [ ] Solver: Nashpy
 - [ ] Solver: quadprog
 - [ ] Solver: CVXOPT

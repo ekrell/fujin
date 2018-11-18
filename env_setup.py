@@ -7,20 +7,28 @@ def parseOptions():
     from optparse import OptionParser
 
     # Setup settings dictionary
-    settings = { "occupancy"  : None,
-                 "ucomponent" : None,
-                 "vcomponent" : None,
-                 "weights"    : None,
-                 "errors"     : None,
-                 "start"      : None,
-                 "target"     : None,
-                 "files"      : { "nashgrid" : None,
-                                  "cost2go" : None,
-                                },
+    settings = { "iterations"  : 1,
+                 "occupancy"   : None,
+                 "ucomponent"  : None,
+                 "vcomponent"  : None,
+                 "weights"     : None,
+                 "weightgrids" : None,
+                 "errors"      : None,
+                 "errorgrids"  : None,
+                 "start"       : None,
+                 "target"      : None,
+                 "files"       : { "nashgrid" : None,
+                                   "cost2go" : None,
+                                 },
+                 "method"     : 0,
+                 "verbose"     : False,
                }
 
     # Define options
     parser = OptionParser()
+    parser.add_option("-i", "--iterations",    dest = "iterations",   metavar = "ITERATIONS",
+            default = 1,
+            help = "number of solver iterations")
     parser.add_option("-o", "--occupancy",     dest = "occupancy",    metavar = "OCCUPANCY",
             help = "list of occupancy images (csv)")
     parser.add_option("-u", "--ucomponents",   dest = "ucomponents",  metavar = "UCOMPONENTS",
@@ -29,8 +37,12 @@ def parseOptions():
             help = "list of v vector component images (csv)")
     parser.add_option("-w", "--weights",       dest = "weights",      metavar = "WEIGHTS",
             help = "list of vector weights (csv)")
+    parser.add_option("--weightgrids",         dest = "weightgrids",  metavar = "WEIGHTGRIDS",
+            help = "list of vector weight grids (csv)")
     parser.add_option("-e", "--errors",        dest = "errors",       metavar = "ERRORS",
             help = "list of vector errors (csv)")
+    parser.add_option("--errorgrids",          dest = "errorgrids",   metavar = "ERRORGRIDS",
+            help = "list of vector error grids (csv)")
     parser.add_option("-s", "--start",         dest = "start",        metavar = "START",
             help = "start position as row,col")
     parser.add_option("-t", "--target",        dest = "target",       metavar = "TARGET",
@@ -39,6 +51,12 @@ def parseOptions():
             help = "file to store grid with traveler action costs for each cell")
     parser.add_option("-a", "--actionfile",    dest = "actionfile",   metavar = "ACTIONFILE",
             help = "file to store grid with traveler actions for each cell")
+    parser.add_option("-m", "--method",        dest = "method",       metavar = "METHOD",
+            default = 0,
+            help = "Select method to find Nash (0:williams, 1:gambit, 2:nashpy)")
+    parser.add_option("--verbose",             dest = "verbose",      metavar = "VERBOSE",
+            action="store_true", default = False,
+            help = "Display messages during execution")
 
     # Get options
     (options, args) = parser.parse_args()
@@ -55,6 +73,8 @@ def parseOptions():
 
     settings["files"]["cost2go"]    = options.costfile
     settings["files"]["actiongrid"] = options.actionfile
+    settings["iterations"]          = options.iterations
+    settings["method"]              = int(options.method)
 
     settings["occupancy"] = options.occupancy.split(",")
 
@@ -64,21 +84,24 @@ def parseOptions():
         settings["vcomponents"] = options.vcomponents.split(",")
     if options.weights     is not None:
         settings["weights"]     = [float(w) for w in options.weights    .split(",")]
-    if options.weights     is not None:
+    if options.errors is not None:
         settings["errors"]      = [float(e) for e in options.errors     .split(",")]
+    if options.weightgrids is not None:
+        settings["weightgrids"] = options.weightgrids.split(",")
+    if options.errorgrids is not None:
+        settings["errorgrids"]  = options.errorgrids.split(",")
 
     try:
         settings["start"]  = (int(options.start.split(",")[0]),  int(options.start.split(",")[1]))
         settings["target"] = (int(options.target.split(",")[0]), int(options.target.split(",")[1]))
     except:
         (options, args, settings) = None, None, None
+        return (options, args, settings)
 
 
     # Esnure that all lists related to the vectors are of same length
     try:
-        if     len(settings["ucomponents"]) != len(settings["vcomponents"]) \
-            or len(settings["ucomponents"]) != len(settings["weights"])     \
-            or len(settings["weights"])     != len(settings["errors"]):
+        if len(settings["ucomponents"]) != len(settings["vcomponents"]):
             (options, args, settings) = None, None, None
             return (options, args, settings)
     except:
@@ -100,6 +123,10 @@ def parseOptions():
     if fileCheck == False:
         (options, args, settings) = None, None, None
         return (options, args, settings)
+
+    # Misc options
+    settings["verbose"] = options.verbose
+
 
     return (options, args, settings)
 
@@ -152,13 +179,11 @@ def printEnv(env):
     for i in range(len(env["vcomponents"])):
         print("    Vector {} : {}".format(i, env["vcomponents"][i]))
     print("Vector weights:")
-    for i in range(len(env["weights"])):
-        print("    Vector {} : {}".format(i, env["weights"][i]))
-    print("Vector errors:")
-    for i in range(len(env["errors"])):
-        print("    Vector {} : +/- {}".format(i, env["errors"][i]))
-
-
+    #for i in range(len(env["weights"])):
+    #    print("    Vector {} : {}".format(i, env["weights"][i]))
+    #print("Vector errors:")
+    #for i in range(len(env["errors"])):
+    #    print("    Vector {} : +/- {}".format(i, env["errors"][i]))
     print("------")
 
 
@@ -216,4 +241,53 @@ def getVectorGrids(ucomponentImageFiles, vcomponentImageFiles):
         vgrids[i] = getComponentGrid(ucomponentImageFiles[i])
 
     return ugrids, vgrids
+
+
+
+
+def getWeightGrids(occgrid, weights, weightgridFiles, numGrids):
+
+    weightgrids = [None for w in range(numGrids)]
+
+    # Priority given to weightgrid files
+    if weightgridFiles is not None:
+        for i in range(numGrids):
+            weightgrids[i] = np.loadtxt(weightgridFiles[i])
+        return weightgrids
+
+    # Then to a single value: assigned to all cells
+    if weights is not None:
+        for i in range(numGrids):
+            weightgrids[i] = np.ones(occgrid.shape) * weights[i]
+        return weightgrids
+
+    # Else weight is one
+    for i in range(numGrids):
+        weightgrids[i] = np.ones(occgrid.shape)
+
+    return weightgrids
+
+
+def getErrorGrids(occgrid, errors, errorgridFiles, numGrids):
+
+    errorgrids = [None for w in range(numGrids)]
+
+    # Priority given to errorgrid files
+    if errorgridFiles is not None:
+        for i in range(numGrids):
+            errorgrids[i] = np.loadtxt(errorgridFiles[i])
+        return errorgrids
+
+    # Then to a single value: assigned to all cells
+    if errors is not None:
+        for i in range(numGrids):
+            errorgrids[i] = np.ones(occgrid.shape) * errors[i]
+        return errorgrids
+
+    # Else error is one
+    for i in range(numGrids):
+        errorgrids[i] = np.ones(occgrid.shape)
+
+    return errorgrids
+
 

@@ -88,7 +88,7 @@ def getOutcome(move, us, vs, weights, traveler, cost2go = None, row = None, col 
                 work = work + cost2go[row - 1][col]
             else:
                 work = work + 100000000000
-        if move == "D": 
+        if move == "D":
             if row < len(cost2go) - 1:
                 work = work + cost2go[row + 1][col]
             else:
@@ -125,7 +125,7 @@ def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, cost2go 
     return game
 
 
-def solve_williams(payoff_matrix, iterations=200):
+def solve_williams(payoff_matrix, iterations=100):
     '''
     Source: http://code.activestate.com/recipes/496825-game-theory-payoff-matrix-solver/
 
@@ -182,9 +182,18 @@ def solve_gambit(game):
     solver = gambit.nash.ExternalEnumMixedSolver()
     solution = solver.solve(g)
     solution = np.asarray(solution[0])
-
     y = solution[0:m]
     z = solution[m:m+n]
+    return y, z
+
+def solve_nashpy(game):
+    import nashpy as nash
+
+    rps = nash.Game(game)
+    eqs = list(rps.support_enumeration())
+
+    y = eqs[0]
+    z = eqs[1]
 
     return y, z
 
@@ -195,17 +204,22 @@ def solveGame(game, method = 0):
        ------------
        0 : williams
        1 : gambit
+       2 : nashpy
     '''
 
-    if method == 0:
-        y, z  = solve_williams(game)
-    if method == 1:
-        y, z  = solve_gambit(game)
+    if   method == 0:
+        y, z = solve_williams(game)
+    elif method == 1:
+        y, z = solve_gambit(game)
+    elif method == 2:
+        y, z = solve_nashpy(game)
 
     # Convert to pure policy
     i = np.argmax(y)
     j = np.argmax(z)
     v = game[i][j]
+    print (y, z, i, j, v)
+    exit()
 
     return (y, z, i, j, v)
 
@@ -235,7 +249,7 @@ def printSolution(solution, name = ""):
     print("Security level: {}".format(solution[4]))
 
 
-def getCost2go(traveler, occgrid, ugrids, vgrids, errors, weights, iterations = 5):
+def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, verbose = False, iterations = 1, method = 0):
 
     def haltCost(row, col, target_row, target_col):
 
@@ -247,13 +261,16 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, errors, weights, iterations = 
             return 0
 
 
-    def floodAssignCost(row, col, occgrid, ugrids, vgrids, errors, weights, cost2go, actiongrid, traveler):
+    def floodAssignCost(row, col, occgrid, ugrids, vgrids, egrids, wgrids, cost2go, actiongrid, traveler, method = 0):
         stack = set(((row, col),))
 
         visitedgrid = np.zeros(occgrid.shape)
 
         while stack:
             row, col = stack.pop()
+            errors  = [e[row][col] for e in egrids]
+            weights = [w[row][col] for w in wgrids]
+            print (errors, weights)
 
             # If not obstacle..
             if occgrid[row][col] == 0:
@@ -264,10 +281,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, errors, weights, iterations = 
                     actiongrid[row][col] = "H"
                 else:
                     g = getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, cost2go)
-                    solution             = solveGame(g, 0)
-                    #print(solution)
-                    #print(traveler["actionspace"][solution[2]])
-                    #exit()
+                    solution             = solveGame(g, method)
                     cost2go[row][col]    = solution[4]
                     actiongrid[row][col] = traveler["actionspace"][solution[2]]
                 visitedgrid[row][col] = 1
@@ -291,9 +305,10 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, errors, weights, iterations = 
     actiongrid = [["x" for col in range(n)] for row in range(m)]
 
     for i in range(iterations):
-        print("iteration: ", i)
-        floodAssignCost(traveler["target"][0], traveler["target"][1], occgrid, 
-               ugrids, vgrids, errors, weights, cost2go, actiongrid, traveler)
+        if verbose == True:
+            print("iteration: " + str(i + 1) + " / " + str(iterations))
+        floodAssignCost(traveler["target"][0], traveler["target"][1], occgrid,
+               ugrids, vgrids, egrids, wgrids, cost2go, actiongrid, traveler, method = method)
 
     return cost2go, actiongrid
 
