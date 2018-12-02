@@ -1,3 +1,4 @@
+import travel_tools
 from math import acos, cos, sin, ceil, sqrt, atan2
 import numpy as np
 import itertools
@@ -80,49 +81,52 @@ def getOutcome(move, us, vs, weights, traveler, cost2go = None, row = None, col 
 
     # Calculate work
     work = maga  # Proportional to magnitude the speed is 'per cell'
+    workc = work
     # Dynamic programming: include cost2go
     if cost2go is not None and row is not None and col is not None:
 
-        if move == "U":
+        if move == "^":
             if row > 0:
-                work = work + cost2go[row - 1][col]
+                workc = work + cost2go[row - 1][col]
             else:
-                work = work + 100000000000
-        if move == "D":
+                workc = work + 100000000000
+        if move == "v":
             if row < len(cost2go) - 1:
-                work = work + cost2go[row + 1][col]
+                workc = work + cost2go[row + 1][col]
             else:
-                work = work + 100000000000
-        if move == "L":
+                workc = work + 100000000000
+        if move == "<":
             if col > 0:
-                work = work + cost2go[row][col - 1]
+                workc = work + cost2go[row][col - 1]
             else:
-                work = work + 100000000000
-        if move == "R":
+                workc = work + 100000000000
+        if move == ">":
             if col < len(cost2go[0]) - 1:
-                work = work + cost2go[row][col + 1]
+                workc = work + cost2go[row][col + 1]
             else:
-                work = work + 100000000000
-        if move == "H":
-            work = 100000000000
+                workc = work + 100000000000
+        if move == "*":
+            workc = 100000000000
 
-    return work
+    return workc, work
 
 def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, cost2go = None):
 
     world_actionspace = getWorldActionsForCell(row, col, ugrids, vgrids, errors)
 
     game = [[0 for wa in range(world_actionspace["num"])] for ta in traveler["actionspace"]]
+    game_work = [[0 for wa in range(world_actionspace["num"])] for ta in traveler["actionspace"]]
 
     for r in range(len(game)):
         for c in range(len(game[0])):
-            game[r][c] = getOutcome(traveler["actionspace"][r],
+            game[r][c], game_work[r][c] = getOutcome(traveler["actionspace"][r],
                     world_actionspace["uactions"][c], world_actionspace["vactions"][c],
                     weights, traveler, cost2go, row, col)
 
-    game = np.array(game)
+    game      = np.array(game)
+    game_work = np.array(game_work)
 
-    return game
+    return game, game_work
 
 
 def solve_williams(payoff_matrix, iterations=100):
@@ -218,8 +222,6 @@ def solveGame(game, method = 0):
     i = np.argmax(y)
     j = np.argmax(z)
     v = game[i][j]
-    print (y, z, i, j, v)
-    exit()
 
     return (y, z, i, j, v)
 
@@ -249,7 +251,7 @@ def printSolution(solution, name = ""):
     print("Security level: {}".format(solution[4]))
 
 
-def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, verbose = False, iterations = 1, method = 0):
+def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None, verbose = False, iterations = 1, method = 0):
 
     def haltCost(row, col, target_row, target_col):
 
@@ -261,7 +263,13 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, verbose = Fals
             return 0
 
 
-    def floodAssignCost(row, col, occgrid, ugrids, vgrids, egrids, wgrids, cost2go, actiongrid, traveler, method = 0):
+    def floodAssignCost(row, col, occgrid, ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler, bounds = None, method = 0):
+
+        if bounds == None:
+            bounds = { "upperleft"  : (0, 0),
+                       "lowerright" : (occgrid.shape[0], occgrid.shape[1]),
+                     } 
+
         stack = set(((row, col),))
 
         visitedgrid = np.zeros(occgrid.shape)
@@ -270,7 +278,6 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, verbose = Fals
             row, col = stack.pop()
             errors  = [e[row][col] for e in egrids]
             weights = [w[row][col] for w in wgrids]
-            print (errors, weights)
 
             # If not obstacle..
             if occgrid[row][col] == 0:
@@ -278,58 +285,92 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, verbose = Fals
                 if row == traveler["target"][0] and \
                    col == traveler["target"][1]:
                     cost2go[row][col]    = 0
-                    actiongrid[row][col] = "H"
+                    actiongrid[row][col] = "*"
                 else:
-                    g = getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, cost2go)
+                    g, g_work = getGameForCell(row, col, traveler, ugrids, vgrids, 
+                                                         errors, weights, cost2go)
                     solution             = solveGame(g, method)
                     cost2go[row][col]    = solution[4]
+                    work2go[row][col]    = g_work[solution[2], solution[3]]
                     actiongrid[row][col] = traveler["actionspace"][solution[2]]
                 visitedgrid[row][col] = 1
 
-                if row > 0:
+                if row > bounds["upperleft"][0]:
                     if visitedgrid[row - 1][col] == 0:
                        stack.add((row - 1, col))
-                if row < len(occgrid) - 1:
+                if row < bounds["lowerright"][0]:
                     if visitedgrid[row + 1][col] == 0:
                         stack.add((row + 1, col))
-                if col > 0:
+                if col > bounds["upperleft"][1]:
                     if visitedgrid[row][col - 1] == 0:
                         stack.add((row, col - 1))
-                if col < len(occgrid[0]) - 1:
+                if col < bounds["lowerright"][1]:
                     if visitedgrid[row][col + 1] == 0:
                         stack.add((row, col + 1))
 
     m, n = occgrid.shape
 
     cost2go = np.zeros(occgrid.shape) + 100000000000
-    actiongrid = [["x" for col in range(n)] for row in range(m)]
+    work2go = np.zeros(occgrid.shape) 
+    actiongrid = np.array([[" " for col in range(n)] for row in range(m)])
+    for row in range(len(occgrid)):
+        for col in range(len(occgrid[0])):
+            if occgrid[row][col] == 1:
+                actiongrid[row][col] = '-'
+    history = [{"statPath" : None, "statChange" : None} for i in range(iterations)]
+
+    cost2go_prev = np.array(cost2go)
 
     for i in range(iterations):
+        floodAssignCost(traveler["target"][0], traveler["target"][1], occgrid,
+            ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler, 
+            bounds = bounds, method = method)
+
+        # Calc change in cost2go
+        cost2go_diff = np.abs(cost2go - cost2go_prev)
+        avg          = np.mean(cost2go)
+        avg_diff     = np.mean(cost2go_diff)
+        cost2go_prev = np.array(cost2go)
+
+        # Follow path using cost2go
+        trace, waypoints = travel_tools.followPath(traveler["start"], actiongrid)
+        stat = travel_tools.statPath(trace, waypoints, cost2go, work2go)
+
+        history[i]["statPath"]   = stat
+        history[i]["statChange"] = {"avg" : avg, "avg_diff" : avg_diff}
+
         if verbose == True:
             print("iteration: " + str(i + 1) + " / " + str(iterations))
-        floodAssignCost(traveler["target"][0], traveler["target"][1], occgrid,
-               ugrids, vgrids, egrids, wgrids, cost2go, actiongrid, traveler, method = method)
+            print("  Avg cost2go: %f" % (avg))
+            print("  Avg cost2go change: %f" % (avg_diff))  
+            print("  Path: (%d, %d) -> (%d, %d)" % \
+                 (traveler["start"][0],  traveler["start"][1], 
+                 traveler["target"][0], traveler["target"][1]))
+            travel_tools.printStatPath(stat, copious = False)
 
-    return cost2go, actiongrid
+    return cost2go, work2go, actiongrid, history
 
-
-
-def writeActiongrid(actiongrid, actionfile):
-
+def writeActiongrid(actiongrid, actionfile, bounds = None):
     numrows = len(actiongrid)
     numcols = len(actiongrid[0])
 
-    action2symbol = { "U" : "^", "D" : "v", "L" : "<", "R" : ">",
-                      "H" : "#", "x" : "-", }
+    if bounds == None:
+        bounds = { "upperleft"  : (0, 0),
+                   "lowerright" : (actiongrid.shape[0], actiongrid.shape[1]),
+                 } 
 
     af = open(actionfile, 'w')
     for row in range(numrows):
         for col in range(numcols):
-            af.write("%s" % action2symbol[actiongrid[row][col]])
-        af.write("\n")
 
+
+            af.write("%s" % actiongrid[row][col])
+
+
+        af.write("\n")
     af.close()
 
-
-
+def readActiongrid(actionfile):
+    actiongrid = np.genfromtxt(actionfile, delimiter = 1, dtype = "string")
+    return actiongrid
 

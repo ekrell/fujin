@@ -2,6 +2,9 @@ from math import acos, cos, sin, ceil, pi
 import numpy as np
 import os.path
 from PIL import Image
+from os.path import splitext
+from osgeo import gdal
+
 
 def parseOptions():
     from optparse import OptionParser
@@ -17,11 +20,18 @@ def parseOptions():
                  "errorgrids"  : None,
                  "start"       : None,
                  "target"      : None,
-                 "files"       : { "nashgrid" : None,
-                                   "cost2go" : None,
+                 "files"       : { "cost2go"    : None,
+                                   "work2go"    : None,
+                                   "actiongrid" : None,
+                                   "pickle"     : None,
+                                   "pandas"     : None,
                                  },
-                 "method"     : 0,
+                 "method"      : 0,
                  "verbose"     : False,
+                 "reuse"       : False,
+                 "bounds"      : { "upperleft"  : None,
+                                   "lowerright" : None,
+                                 },
                }
 
     # Define options
@@ -49,14 +59,25 @@ def parseOptions():
             help = "target position as row,col")
     parser.add_option("-c", "--costfile",      dest = "costfile",     metavar = "COSTFILE",
             help = "file to store grid with traveler action costs for each cell")
+    parser.add_option("-x", "--workfile",      dest = "workfile",     metavar = "WORKFILE",
+            help = "file to store grid with traveler applied work for each cell")
     parser.add_option("-a", "--actionfile",    dest = "actionfile",   metavar = "ACTIONFILE",
             help = "file to store grid with traveler actions for each cell")
+    parser.add_option("--picklefile",    dest = "picklefile",         metavar = "PICKLE",
+            help = "file to store convergence history as pickle")
+    parser.add_option("--pandasfile",    dest = "pandasfile",         metavar = "PANDAS",
+            help = "file to store convergence history as pandas")
     parser.add_option("-m", "--method",        dest = "method",       metavar = "METHOD",
             default = 0,
             help = "Select method to find Nash (0:williams, 1:gambit, 2:nashpy)")
     parser.add_option("--verbose",             dest = "verbose",      metavar = "VERBOSE",
-            action="store_true", default = False,
+            action = "store_true", default = False,
             help = "Display messages during execution")
+    parser.add_option("-r", "--reuse",         dest = "reuse",        metavar = "REUSE",
+            action = "store_true", default = False,
+            help = "Reuse existing actiongrid for goto planning")
+    parser.add_option("-b", "--bounds",        dest = "bounds",       metavar = "BOUNDS",
+            help = "Raster boundaries as x1,y1,x2,y2")
 
     # Get options
     (options, args) = parser.parse_args()
@@ -66,14 +87,18 @@ def parseOptions():
         or options.start      is None \
         or options.target     is None \
         or options.costfile   is None \
+        or options.workfile   is None \
         or options.actionfile is None:
 
         (options, args, settings) = None, None, None
         return (options, args, settings)
 
     settings["files"]["cost2go"]    = options.costfile
+    settings["files"]["work2go"]    = options.workfile
     settings["files"]["actiongrid"] = options.actionfile
-    settings["iterations"]          = options.iterations
+    settings["files"]["pickle"]     = options.picklefile
+    settings["files"]["pandas"]     = options.pandasfile
+    settings["iterations"]          = int(options.iterations)
     settings["method"]              = int(options.method)
 
     settings["occupancy"] = options.occupancy.split(",")
@@ -92,8 +117,10 @@ def parseOptions():
         settings["errorgrids"]  = options.errorgrids.split(",")
 
     try:
-        settings["start"]  = (int(options.start.split(",")[0]),  int(options.start.split(",")[1]))
-        settings["target"] = (int(options.target.split(",")[0]), int(options.target.split(",")[1]))
+        settings["start"]  = (int(options.start.split(",")[0]),  
+                              int(options.start.split(",")[1]))
+        settings["target"] = (int(options.target.split(",")[0]), 
+                              int(options.target.split(",")[1]))
     except:
         (options, args, settings) = None, None, None
         return (options, args, settings)
@@ -126,6 +153,27 @@ def parseOptions():
 
     # Misc options
     settings["verbose"] = options.verbose
+    settings["reuse"]   = options.reuse
+
+
+    # Boundaries
+    if options.bounds is not None:
+        bounds = [int(s) for s in options.bounds.split(",")]
+        settings["bounds"]["upperleft"]  = (bounds[0], bounds[1])
+        settings["bounds"]["lowerright"] = (bounds[2], bounds[3])
+        if settings["start"][0]  <  settings["bounds"]["upperleft"][0]  or \
+           settings["start"][0]  >= settings["bounds"]["lowerright"][0] or \
+           settings["start"][1]  <  settings["bounds"]["upperleft"][1]  or \
+           settings["start"][1]  >= settings["bounds"]["lowerright"][1] or \
+           settings["target"][0] <  settings["bounds"]["upperleft"][0]  or \
+           settings["target"][0] >= settings["bounds"]["lowerright"][0] or \
+           settings["target"][1] <  settings["bounds"]["upperleft"][1]  or \
+           settings["target"][1] >= settings["bounds"]["lowerright"][1]:
+            (options, args, settings) = None, None, None
+            return (options, args, settings)
+
+  
+
 
 
     return (options, args, settings)
@@ -134,15 +182,15 @@ def getTraveler(start, target, speed_cps, travelType):
 
     travelTypes = ["4way", "8way"]
 
-    action2radians = { "R"  : 0.0,
+    action2radians = { ">"  : 0.0,
                        "UR" : pi / 4.0,
-                       "U"  : pi / 2.0,
+                       "^"  : pi / 2.0,
                        "UL" : pi * 0.75,
-                       "L"  : pi,
+                       "<"  : pi,
                        "DL" : pi * 1.25,
-                       "D"  : pi * 1.5,
+                       "v"  : pi * 1.5,
                        "DR" : pi * 1.75,
-                       "H"  : 0,
+                       "*"  : 0,
                     }
 
     traveler = { "start"          : start,
@@ -153,11 +201,10 @@ def getTraveler(start, target, speed_cps, travelType):
                }
 
     if   travelType == travelTypes[0]:
-        traveler["actionspace"] = ["H", "U",  "D",  "L",  "R"]
+        traveler["actionspace"] = ["*", "^",  "v",  "<",  ">"]
     elif travelType == travelTypes[1]:
-        traveler["actionspace"] = ["H", "U",  "D",  "L",  "R",
+        traveler["actionspace"] = ["*", "^",  "v",  "<",  ">",
                                         "UL", "UR", "DL", "DR"]
-
     return traveler
 
 
@@ -178,7 +225,7 @@ def printEnv(env):
     print("Vector v images:")
     for i in range(len(env["vcomponents"])):
         print("    Vector {} : {}".format(i, env["vcomponents"][i]))
-    print("Vector weights:")
+    #print("Vector weights:")
     #for i in range(len(env["weights"])):
     #    print("    Vector {} : {}".format(i, env["weights"][i]))
     #print("Vector errors:")
@@ -194,37 +241,54 @@ def getOccupancyGrid(occupancyImageFiles):
     # such that if any file indicates an occupied cell,
     # the cell is occupied in the result array
 
+
     # occupancyImageFiles:
     # Example:
     #     [ data/EXP1_region_1.png, data/EXP1_region_1.png ]
 
-    grids = [np.asarray(Image.open(f)) for f in occupancyImageFiles]
+    occgrid = None
+    name, ext = splitext(occupancyImageFiles[0])
 
-    occgrid = np.zeros((grids[0].shape[0], grids[0].shape[1]))
+    if ext == ".png":
+        grids = [np.asarray(Image.open(f)) for f in occupancyImageFiles]
+        occgrid = np.zeros((grids[0].shape[0], grids[0].shape[1]))
+        for row in range(len(occgrid)):
+            for col in range(len(occgrid[0])):
+                for g in range(len(grids)):
+                    for c in range(4):
+                        if (grids[g][row][col][c] != 255):
+                            occgrid[row][col] = 1
 
-    for row in range(len(occgrid)):
-        for col in range(len(occgrid[0])):
-            for g in range(len(grids)):
-                for c in range(4):
-                    if (grids[g][row][col][c] != 255):
-                        occgrid[row][col] = 1
+    if ext == ".tif":
+        r = gdal.Open(occupancyImageFiles[0])
+        occgrid = r.GetRasterBand(1).ReadAsArray()
+        occgrid = 0 * occgrid
+        for f in occupancyImageFiles:
+            r = gdal.Open(f)
+            for band in range(r.RasterCount):
+                occgrid = occgrid + r.GetRasterBand(band + 1).ReadAsArray()
+
     return occgrid
 
 
+def getComponentGrid(componentImageFile, band = 1):
 
-def getComponentGrid(componentImageFile):
+    compgrid = None
+    name, ext = splitext(componentImageFile)
+    
+    if ext == ".png":
+        # Creates 2D numpy array where the grayscale
+        # value of the input image files determined
+        # the proportion of the input maxval at each cell
+        imgarray = np.array(Image.open(componentImageFile).convert('LA'))
+        compgrid = np.zeros((imgarray.shape[0], imgarray.shape[1]))
+        for row in range(len(compgrid)):
+            for col in range(len(compgrid[0])):
+                compgrid[row][col] = imgarray[row][col][0] / 255.0
 
-    # Creates 2D numpy array where the grayscale
-    # value of the input image files determined
-    # the proportion of the input maxval at each cell
-
-    imgarray = np.array(Image.open(componentImageFile).convert('LA'))
-
-    compgrid = np.zeros((imgarray.shape[0], imgarray.shape[1]))
-
-    for row in range(len(compgrid)):
-        for col in range(len(compgrid[0])):
-            compgrid[row][col] = imgarray[row][col][0] / 255.0
+    if ext == ".tif":
+        comp = gdal.Open(componentImageFile)
+        compgrid = comp.GetRasterBand(1).ReadAsArray()
 
     return compgrid
 
