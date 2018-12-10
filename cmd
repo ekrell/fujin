@@ -1,1 +1,0 @@
-python basic_planner.py -o test/data/EXP2_region.tif -u test/data/EXP2_water_u.tif -v test/data/EXP2_water_v.tif -w 1 -e .5 -s 206,213 -t 244,247  -c test/results/EXP5_cost2go.txt -a test/results/EXP5_actions.txt -x test/results/EXP5_work2go.txt -b 200,200,250,250 --verbose --pickle test/results/EXP5_history.pickle --pandas test/results/EXP5_history.pandas -i 50 -r
