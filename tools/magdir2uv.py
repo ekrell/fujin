@@ -18,6 +18,9 @@ def parseOptions():
     parser.add_option("-r", "--reverse",    dest = "reverse",    metavar = "REVERSE",
         action = "store_true", default = False,
         help = "reverse: becomes uv2magdir")
+    parser.add_option("-s", "--scale",      dest = "scale",      metavar = "SCALE",
+        default = 1.0, type = 'float',
+        help = "scale magnitude")
 
     # Get options
     (options, args) = parser.parse_args()
@@ -75,28 +78,31 @@ def main():
         vcomponents_array = [np.zeros(mag_shape) for b in range(mag_raster.RasterCount)]
         # Init rasters
         ucomponents_raster = gdal.GetDriverByName('GTiff').Create(options.ucomponent,
-            mag_shape[1], mag_shape[0], mag_raster.RasterCount, gdal.GDT_Byte)
+            mag_shape[1], mag_shape[0], mag_raster.RasterCount, gdal.GDT_Float32)
         ucomponents_raster.SetGeoTransform(mag_raster.GetGeoTransform())
         ucomponents_raster.SetProjection(mag_raster.GetProjection())
         vcomponents_raster = gdal.GetDriverByName('GTiff').Create(options.vcomponent,
-            mag_shape[1], mag_shape[0], mag_raster.RasterCount, gdal.GDT_Byte)
+            mag_shape[1], mag_shape[0], mag_raster.RasterCount, gdal.GDT_Float32)
         vcomponents_raster.SetGeoTransform(mag_raster.GetGeoTransform())
         vcomponents_raster.SetProjection(mag_raster.GetProjection())
         # Calculate u, v
         for b in range(mag_raster.RasterCount):
             mag_array = mag_raster.GetRasterBand(b + 1).ReadAsArray()
+            # Scale magnitude
+            mag_array = mag_array * options.scale
             dir_array = dir_raster.GetRasterBand(b + 1).ReadAsArray()
             for row in range(mag_shape[0]):
                 for col in range(mag_shape[1]):
                      u, v = magdir2uv(mag_array[row][col], dir_array[row][col])
                      ucomponents_array[b][row][col] = u
                      vcomponents_array[b][row][col] = v    
-            ucomponents_raster.GetRasterBand(b + 1).WriteArray(ucomponents_array[b])            
-            vcomponents_raster.GetRasterBand(b + 1).WriteArray(vcomponents_array[b])            
+            uband = ucomponents_raster.GetRasterBand(b + 1)
+            uband.WriteArray(ucomponents_array[b])            
+            vband = vcomponents_raster.GetRasterBand(b + 1)
+            vband.WriteArray(vcomponents_array[b])            
         # Write to disk
         ucomponents_raster.FlushCache()
         vcomponents_raster.FlushCache()
-    
 if __name__ == "__main__":
     main()
 

@@ -1,0 +1,140 @@
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 10 iterations in 0.00238 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 20 iterations in 0.00199 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 30 iterations in 0.00210 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 40 iterations in 0.00196 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 50 iterations in 0.00196 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 60 iterations in 0.00193 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 70 iterations in 0.00195 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 80 iterations in 0.00201 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 90 iterations in 0.00195 secs
+
+
+Game: game_4way_res50_scale1_599-201.txt
+Nash Solution 
+Player 1:
+    Pure security policy: 1
+    Security policy: 
+     0.01  0.99  0.0  0.0  0.0  
+Player 2:
+    Pure security policy: 49
+    Security policy: 
+     0.01  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.99  
+Security level: 5930.67535537
+Solve game size (5,50) of 100 iterations in 0.00193 secs
+

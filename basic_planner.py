@@ -1,6 +1,7 @@
 import env_setup
 import solver_tools
 import travel_tools
+import visual_tools
 import numpy as np
 import pandas as pd
 import pickle
@@ -8,26 +9,31 @@ import matplotlib.pyplot as plt
 
 def main():
 
+    #########
+    # Setup #
+    #########
     history = None
-
-    options, args, settings = env_setup.parseOptions()
     speed_cps = 10 # 10 cells per second
+    options, args, settings = env_setup.parseOptions()
 
     traveler = env_setup.getTraveler(settings["start"], settings["target"], speed_cps, "4way")
-
     env_setup.printEnv(settings)
-
     occgrid = env_setup.getOccupancyGrid(settings["occupancy"])
-    ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"], settings["vcomponents"])
-    wgrids = env_setup.getWeightGrids(occgrid, settings["weights"], settings["weightgrids"], len(ugrids))
-    egrids  = env_setup.getErrorGrids (occgrid, settings["errors"],  settings["errorgrids"], len(ugrids))
+    ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"], settings["vcomponents"], occgrid)
+    wgrids = env_setup.getWeightGrids(occgrid, settings["weights"], 
+                              settings["weightgrids"], len(ugrids))
+    egrids  = env_setup.getErrorGrids (occgrid, settings["errors"], 
+                               settings["errorgrids"], len(ugrids))
 
+    ############
+    # Planning #
+    ############
     if settings["reuse"] == False:
         # Assign costs -> generate cost2go
         cost2go, work2go, actiongrid, history = solver_tools.getCost2go(traveler, 
           occgrid, ugrids, vgrids, egrids, wgrids, 
           bounds = settings["bounds"], verbose =  settings["verbose"], 
-          method = settings["method"], iterations = settings["iterations"])
+          iterations = settings["iterations"])
         # Save cost2go
         np.savetxt(settings["files"]["cost2go"], cost2go)
         # Save work2go
@@ -47,6 +53,9 @@ def main():
             with open(settings["files"]["pickle"], 'rb') as handle:
                 history = pickle.load(handle)
 
+    ###############
+    # Path Follow #
+    ###############
     # Test a single path
     if traveler["start"] is not None:
         # Generate path to goal
@@ -56,6 +65,9 @@ def main():
         # Print stat
         travel_tools.printStatPath(stat, copious = False)
         
+    ##############
+    # Path Stats #
+    ##############
     # Generate convergence table
     if history is not None:
         col_num_waypoints = [s["statPath"]["num_waypoints"] for s in history]
@@ -69,8 +81,8 @@ def main():
               "distance"     : col_distance,
               "work"         : col_work,
               "cost"         : col_cost,
-              "col_avg"      : col_avg,
-              "col_avg_diff" : col_avg_diff,
+              "avg"          : col_avg,
+              "avg_diff"     : col_avg_diff,
             })
         history_df.index.name = "iteration"
 
@@ -78,11 +90,22 @@ def main():
     if settings["files"]["pandas"] is not None and history is not None:
         history_df.to_csv(settings["files"]["pandas"]) 
 
+    ##############
+    # Path Plots #
+    ##############
     # Plot convergence
     if history is not None:
-        plt.scatter(history_df.index.values, history_df["work"])
-        plt.show()
-
+        visual_tools.plotPathStatHistory(history_df, settings["files"]["plots"])
+        ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0], 
+                                          occgrid, settings["files"]["plots"])
+        ax = visual_tools.plotVector(ugrids, vgrids, settings["occupancy"][0], 
+                                          occgrid, settings["files"]["plots"])
+        ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0], 
+                  occgrid, settings["files"]["plots"] + "_full", init = False)
+    
+    if actiongrid is not None:
+        visual_tools.plotActions(actiongrid, traveler["action2radians"], settings["occupancy"][0],
+                                                              occgrid, settings["files"]["plots"])
 
 if __name__ == "__main__":
     main()

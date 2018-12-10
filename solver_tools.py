@@ -126,6 +126,11 @@ def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, cost2go 
     game      = np.array(game)
     game_work = np.array(game_work)
 
+    R = [201, 333, 466, 599]
+    C = [201, 333, 466, 599]
+    if row in R and col in C:
+        np.savetxt("test/games/game_4way_res50_scale100_" + str(row) + "-" + str(col) + ".txt", game)
+
     return game, game_work
 
 
@@ -235,14 +240,14 @@ def printGame(game):
 def printSolution(solution, name = ""):
     print("Nash Solution " + name)
     print("Player 1:" )
-    print("    Pure sucurity policy: {}".format(solution[2]))
+    print("    Pure security policy: {}".format(solution[2]))
     print("    Security policy: ")
     print("    "),
     for num in solution[0]:
         print("{} ".format(num)),
     print("")
-    print("Player 1:" )
-    print("    Pure sucurity policy: {}".format(solution[3]))
+    print("Player 2:" )
+    print("    Pure security policy: {}".format(solution[3]))
     print("    Security policy: ")
     print("    "),
     for num in solution[1]:
@@ -265,7 +270,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None,
 
     def floodAssignCost(row, col, occgrid, ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler, bounds = None, method = 0):
 
-        if bounds == None:
+        if bounds["upperleft"] == None or bounds["lowerright"] == None:
             bounds = { "upperleft"  : (0, 0),
                        "lowerright" : (occgrid.shape[0], occgrid.shape[1]),
                      } 

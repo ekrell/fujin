@@ -12,8 +12,8 @@ def parseOptions():
     # Setup settings dictionary
     settings = { "iterations"  : 1,
                  "occupancy"   : None,
-                 "ucomponent"  : None,
-                 "vcomponent"  : None,
+                 "ucomponents" : None,
+                 "vcomponents" : None,
                  "weights"     : None,
                  "weightgrids" : None,
                  "errors"      : None,
@@ -25,8 +25,8 @@ def parseOptions():
                                    "actiongrid" : None,
                                    "pickle"     : None,
                                    "pandas"     : None,
+                                   "plots"      : None,
                                  },
-                 "method"      : 0,
                  "verbose"     : False,
                  "reuse"       : False,
                  "bounds"      : { "upperleft"  : None,
@@ -63,13 +63,12 @@ def parseOptions():
             help = "file to store grid with traveler applied work for each cell")
     parser.add_option("-a", "--actionfile",    dest = "actionfile",   metavar = "ACTIONFILE",
             help = "file to store grid with traveler actions for each cell")
-    parser.add_option("--picklefile",    dest = "picklefile",         metavar = "PICKLE",
+    parser.add_option("--picklefile",          dest = "picklefile",   metavar = "PICKLEFILE",
             help = "file to store convergence history as pickle")
-    parser.add_option("--pandasfile",    dest = "pandasfile",         metavar = "PANDAS",
+    parser.add_option("--pandasfile",          dest = "pandasfile",   metavar = "PANDASFILE",
             help = "file to store convergence history as pandas")
-    parser.add_option("-m", "--method",        dest = "method",       metavar = "METHOD",
-            default = 0,
-            help = "Select method to find Nash (0:williams, 1:gambit, 2:nashpy)")
+    parser.add_option("--plotsfiles",          dest = "plotsfile",    metavar = "PLOTSFILE",
+            help = "file (prefix) to store convergence history plots. Leave off extention")
     parser.add_option("--verbose",             dest = "verbose",      metavar = "VERBOSE",
             action = "store_true", default = False,
             help = "Display messages during execution")
@@ -98,8 +97,8 @@ def parseOptions():
     settings["files"]["actiongrid"] = options.actionfile
     settings["files"]["pickle"]     = options.picklefile
     settings["files"]["pandas"]     = options.pandasfile
+    settings["files"]["plots"]      = options.plotsfile
     settings["iterations"]          = int(options.iterations)
-    settings["method"]              = int(options.method)
 
     settings["occupancy"] = options.occupancy.split(",")
 
@@ -127,13 +126,14 @@ def parseOptions():
 
 
     # Esnure that all lists related to the vectors are of same length
-    try:
-        if len(settings["ucomponents"]) != len(settings["vcomponents"]):
+    if settings["ucomponents"] is not None or settings["vcomponents"] is not None:
+       try:
+            if len(settings["ucomponents"]) != len(settings["vcomponents"]):
+                (options, args, settings) = None, None, None
+                return (options, args, settings)
+       except:
             (options, args, settings) = None, None, None
             return (options, args, settings)
-    except:
-        (options, args, settings) = None, None, None
-        return (options, args, settings)
 
 
     # Ensure all files are truly files
@@ -141,12 +141,13 @@ def parseOptions():
     for o in settings["occupancy"]:
         if os.path.isfile(o) == False:
             fileCheck = False
-    for u in settings["ucomponents"]:
-        if os.path.isfile(u) == False:
-            fileCheck = False
-    for v in settings["vcomponents"]:
-        if os.path.isfile(v) == False:
-            fileCheck = False
+    if settings["ucomponents"] is not None or settings["vcomponents"] is not None:
+        for u in settings["ucomponents"]:
+            if os.path.isfile(u) == False:
+                fileCheck = False
+        for v in settings["vcomponents"]:
+            if os.path.isfile(v) == False:
+                fileCheck = False
     if fileCheck == False:
         (options, args, settings) = None, None, None
         return (options, args, settings)
@@ -191,6 +192,8 @@ def getTraveler(start, target, speed_cps, travelType):
                        "v"  : pi * 1.5,
                        "DR" : pi * 1.75,
                        "*"  : 0,
+                       "-"  : 0,
+                       " "  : 0,
                     }
 
     traveler = { "start"          : start,
@@ -220,11 +223,17 @@ def printEnv(env):
         print("    {}".format(env["occupancy"][i]))
 
     print("Vector u images:")
-    for i in range(len(env["ucomponents"])):
-        print("    Vector {} : {}".format(i, env["ucomponents"][i]))
+    if env["ucomponents"] is not None:
+        for i in range(len(env["ucomponents"])):
+            print("    Vector {} : {}".format(i, env["ucomponents"][i]))
+    else:
+        print("none")
     print("Vector v images:")
-    for i in range(len(env["vcomponents"])):
-        print("    Vector {} : {}".format(i, env["vcomponents"][i]))
+    if env["vcomponents"] is not None:
+        for i in range(len(env["vcomponents"])):
+            print("    Vector {} : {}".format(i, env["vcomponents"][i]))
+    else:
+        print("none")
     #print("Vector weights:")
     #for i in range(len(env["weights"])):
     #    print("    Vector {} : {}".format(i, env["weights"][i]))
@@ -293,17 +302,23 @@ def getComponentGrid(componentImageFile, band = 1):
     return compgrid
 
 
-def getVectorGrids(ucomponentImageFiles, vcomponentImageFiles):
+def getVectorGrids(ucomponentImageFiles, vcomponentImageFiles, occgrid):
 
-    numGrids = len(ucomponentImageFiles)
+    if ucomponentImageFiles is None or \
+       vcomponentImageFiles is None:
+        ugrids = [None]
+        ugrids[0] = np.zeros(occgrid.shape)
+        vgrids = [None]
+        vgrids[0] = np.zeros(occgrid.shape)
+    else:
+        numGrids = len(ucomponentImageFiles)
 
-    ugrids = [None for u in range(numGrids)]
-    vgrids = [None for v in range(numGrids)]
+        ugrids = [None for u in range(numGrids)]
+        vgrids = [None for v in range(numGrids)]
 
-    for i in range(numGrids):
-        ugrids[i] = getComponentGrid(ucomponentImageFiles[i])
-        vgrids[i] = getComponentGrid(ucomponentImageFiles[i])
-
+        for i in range(numGrids):
+            ugrids[i] = getComponentGrid(ucomponentImageFiles[i])
+            vgrids[i] = getComponentGrid(ucomponentImageFiles[i])
     return ugrids, vgrids
 
 
@@ -350,8 +365,7 @@ def getErrorGrids(occgrid, errors, errorgridFiles, numGrids):
 
     # Else error is one
     for i in range(numGrids):
-        errorgrids[i] = np.ones(occgrid.shape)
-
+        errorgrids[i] = np.zeros(occgrid.shape)
     return errorgrids
 
 
