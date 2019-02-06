@@ -16,13 +16,15 @@ def main():
     speed_cps = 10 # 10 cells per second
     options, args, settings = env_setup.parseOptions()
 
+    print(settings)
+
     traveler = env_setup.getTraveler(settings["start"], settings["target"], speed_cps, "4way")
     env_setup.printEnv(settings)
     occgrid = env_setup.getOccupancyGrid(settings["occupancy"])
     ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"], settings["vcomponents"], occgrid)
-    wgrids = env_setup.getWeightGrids(occgrid, settings["weights"], 
+    wgrids = env_setup.getWeightGrids(occgrid, settings["weights"],
                               settings["weightgrids"], len(ugrids))
-    egrids  = env_setup.getErrorGrids (occgrid, settings["errors"], 
+    egrids  = env_setup.getErrorGrids (occgrid, settings["errors"],
                                settings["errorgrids"], len(ugrids))
 
     ############
@@ -30,9 +32,9 @@ def main():
     ############
     if settings["reuse"] == False:
         # Assign costs -> generate cost2go
-        cost2go, work2go, actiongrid, history = solver_tools.getCost2go(traveler, 
-          occgrid, ugrids, vgrids, egrids, wgrids, 
-          bounds = settings["bounds"], verbose =  settings["verbose"], 
+        cost2go, work2go, actiongrid, history = solver_tools.getCost2go(traveler,
+          occgrid, ugrids, vgrids, egrids, wgrids,
+          bounds = settings["bounds"], verbose =  settings["verbose"],
           iterations = settings["iterations"])
         # Save cost2go
         np.savetxt(settings["files"]["cost2go"], cost2go)
@@ -64,7 +66,7 @@ def main():
         stat = travel_tools.statPath(trace, waypoints, cost2go, work2go)
         # Print stat
         travel_tools.printStatPath(stat, copious = False)
-        
+
     ##############
     # Path Stats #
     ##############
@@ -88,7 +90,7 @@ def main():
 
     # Save to csv
     if settings["files"]["pandas"] is not None and history is not None:
-        history_df.to_csv(settings["files"]["pandas"]) 
+        history_df.to_csv(settings["files"]["pandas"])
 
     ##############
     # Path Plots #
@@ -96,13 +98,13 @@ def main():
     # Plot convergence
     if history is not None:
         visual_tools.plotPathStatHistory(history_df, settings["files"]["plots"])
-        ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0], 
+        ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0],
                                           occgrid, settings["files"]["plots"])
-        ax = visual_tools.plotVector(ugrids, vgrids, settings["occupancy"][0], 
+        ax = visual_tools.plotVector(ugrids, vgrids, settings["occupancy"][0],
                                           occgrid, settings["files"]["plots"])
-        ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0], 
+        ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0],
                   occgrid, settings["files"]["plots"] + "_full", init = False)
-    
+
     if actiongrid is not None:
         visual_tools.plotActions(actiongrid, traveler["action2radians"], settings["occupancy"][0],
                                                               occgrid, settings["files"]["plots"])

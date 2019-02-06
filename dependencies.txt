@@ -1,6 +1,12 @@
 Python dependencies:
 numpy
+Pillo
+pyton-gdal
+matplotlib
+mpltoolkits.basemap
+georaster
 
 
 -------------------
 System dependencies:
+gdal

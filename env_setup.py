@@ -92,6 +92,7 @@ def parseOptions():
         (options, args, settings) = None, None, None
         return (options, args, settings)
 
+
     settings["files"]["cost2go"]    = options.costfile
     settings["files"]["work2go"]    = options.workfile
     settings["files"]["actiongrid"] = options.actionfile
@@ -116,9 +117,9 @@ def parseOptions():
         settings["errorgrids"]  = options.errorgrids.split(",")
 
     try:
-        settings["start"]  = (int(options.start.split(",")[0]),  
+        settings["start"]  = (int(options.start.split(",")[0]),
                               int(options.start.split(",")[1]))
-        settings["target"] = (int(options.target.split(",")[0]), 
+        settings["target"] = (int(options.target.split(",")[0]),
                               int(options.target.split(",")[1]))
     except:
         (options, args, settings) = None, None, None
@@ -173,7 +174,7 @@ def parseOptions():
             (options, args, settings) = None, None, None
             return (options, args, settings)
 
-  
+
 
 
 
@@ -284,7 +285,7 @@ def getComponentGrid(componentImageFile, band = 1):
 
     compgrid = None
     name, ext = splitext(componentImageFile)
-    
+
     if ext == ".png":
         # Creates 2D numpy array where the grayscale
         # value of the input image files determined

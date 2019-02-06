@@ -256,7 +256,116 @@ def printSolution(solution, name = ""):
     print("Security level: {}".format(solution[4]))
 
 
-def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None, verbose = False, iterations = 1, method = 0):
+def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
+        bounds = None, verbose = False, iterations = None, method = 0):
+
+    # Destination position
+    G = (traveler["target"][0], traveler["target"][1])
+
+    # Environment size
+    full_m, full_n = occgrid.shape
+    m = abs(bounds["lowerright"][0] - bounds["upperleft"][0])
+    n = abs(bounds["lowerright"][1] - bounds["upperleft"][1])
+    M = m * n # Num cells
+
+    # Minimum distance between neighbors
+    d_min = 0
+    # Maximum distance between neighbors
+    d_max = sqrt(2) * 10 # Put 1000 but unsure max work
+    # Maximum cost
+    D_max = M * d_max  # D_max must be > (M - 1) * d_max
+
+    if iterations == None:
+        iterations = M
+
+    # Get neighbors
+    def getNeighbors(i, m, n):
+
+        B = []
+        # Up
+        if(i[0] - 1 >= 0):
+            B.append((i[0] - 1, i[1], "^"))
+        # Down
+        if(i[0] + 1 < m):
+            B.append((i[0] + 1, i[1], "v"))
+        # Left
+        if(i[1] - 1 >= 0):
+            B.append((i[0], i[1] - 1, "<"))
+        # Right
+        if(i[1] + 1 < n):
+            B.append((i[0], i[1] + 1, ">"))
+        # Up-Left
+        if(i[0] - 1 >= 0 and i[1] - 1 >= 0 ):
+            B.append((i[0] - 1, i[1] - 1, "a"))
+        # Up-Right
+        if(i[0] - 1 >= 0 and i[1] + 1 < n):
+            B.append((i[0] - 1, i[1] + 1, "b"))
+        # Down-Left
+        if(i[0] + 1 < m and i[1] - 1 >= 0):
+            B.append((i[0] + 1, i[1] - 1, "c"))
+        # Down-Right
+        if(i[0] + 1 < m and i[1] + 1 < n):
+            B.append((i[0] + 1, i[1] + 1, "d"))
+
+	return B
+
+    # Distance between location i and j
+    def distance(i, j):
+        dist = pow((pow(i[0] - j[0], 2) + pow(i[1] - j[1], 2)), 0.5)
+        return dist
+
+    def f(i, m, n, cost2go, D_max):
+        B = getNeighbors(i, m, n)
+
+        cost_min = D_max
+        b_min = (None, None, "-")
+        for b in B:
+            cost = distance(i, b) + cost2go[b[0]][b[1]]
+            if cost < cost_min:
+                cost_min = cost
+                b_min = b
+
+        return cost_min, b_min
+
+    def getNewCost(i, G, occgrid, m, n, cost2go, D_max):
+        cost = D_max
+        action = " "
+
+        # Check if target location
+        if i == G:
+            cost = 0
+
+        # Check if obstacle
+        elif occgrid[i[0]][i[1]] == 1:
+            cost = D_max
+
+        # Else, calculate cost normally
+        else:
+            c, b = f(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max)
+            cost = min(D_max, c)
+            action = b[2]
+
+        return cost, action
+
+    cost2go = np.zeros((full_m, full_n)) + D_max
+    work2go = np.zeros((full_m, full_n))
+    action2go = np.array([["-" for col in range(full_n)] for row in range(full_m)])
+    history = None
+
+    for k in range(iterations):
+        for row in range(bounds["upperleft"][0], bounds["lowerright"][0]):
+            for col in range(bounds["upperleft"][1], bounds["lowerright"][1]):
+                i = (row, col)
+                cost2go[i[0]][i[1]], action2go[i[0]][i[1]] = \
+                    getNewCost(i, G, occgrid, m, n, cost2go, D_max)
+
+        print (k)
+
+    np.savetxt("ESTSF.txt", action2go, delimiter = "|", fmt="%s")
+
+    return cost2go, work2go, action2go, history
+
+def getCost2go__OLD(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None, verbose = False, iterations = 1, method = 0):
 
     def haltCost(row, col, target_row, target_col):
 
@@ -273,7 +382,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None,
         if bounds["upperleft"] == None or bounds["lowerright"] == None:
             bounds = { "upperleft"  : (0, 0),
                        "lowerright" : (occgrid.shape[0], occgrid.shape[1]),
-                     } 
+                     }
 
         stack = set(((row, col),))
 
@@ -292,7 +401,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None,
                     cost2go[row][col]    = 0
                     actiongrid[row][col] = "*"
                 else:
-                    g, g_work = getGameForCell(row, col, traveler, ugrids, vgrids, 
+                    g, g_work = getGameForCell(row, col, traveler, ugrids, vgrids,
                                                          errors, weights, cost2go)
                     solution             = solveGame(g, method)
                     cost2go[row][col]    = solution[4]
@@ -316,7 +425,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None,
     m, n = occgrid.shape
 
     cost2go = np.zeros(occgrid.shape) + 100000000000
-    work2go = np.zeros(occgrid.shape) 
+    work2go = np.zeros(occgrid.shape)
     actiongrid = np.array([[" " for col in range(n)] for row in range(m)])
     for row in range(len(occgrid)):
         for col in range(len(occgrid[0])):
@@ -328,7 +437,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None,
 
     for i in range(iterations):
         floodAssignCost(traveler["target"][0], traveler["target"][1], occgrid,
-            ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler, 
+            ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler,
             bounds = bounds, method = method)
 
         # Calc change in cost2go
@@ -347,9 +456,9 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None,
         if verbose == True:
             print("iteration: " + str(i + 1) + " / " + str(iterations))
             print("  Avg cost2go: %f" % (avg))
-            print("  Avg cost2go change: %f" % (avg_diff))  
+            print("  Avg cost2go change: %f" % (avg_diff))
             print("  Path: (%d, %d) -> (%d, %d)" % \
-                 (traveler["start"][0],  traveler["start"][1], 
+                 (traveler["start"][0],  traveler["start"][1],
                  traveler["target"][0], traveler["target"][1]))
             travel_tools.printStatPath(stat, copious = False)
 
@@ -362,7 +471,7 @@ def writeActiongrid(actiongrid, actionfile, bounds = None):
     if bounds == None:
         bounds = { "upperleft"  : (0, 0),
                    "lowerright" : (actiongrid.shape[0], actiongrid.shape[1]),
-                 } 
+                 }
 
     af = open(actionfile, 'w')
     for row in range(numrows):
