@@ -279,33 +279,94 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
         iterations = M
 
     # Get neighbors
-    def getNeighbors(i, m, n):
+    def getNeighbors(i, m, n, env, obstacleFlag = 1):
+
 
         B = []
+
+        upAllowed        = False
+        downAllowed      = False
+        leftAllowed      = False
+        rightAllowed     = False
+        upleftAllowed    = False
+        uprightAllowed   = False
+        downleftAllowed  = False
+        downrightAllowed = False
+
         # Up
         if(i[0] - 1 >= 0):
-            B.append((i[0] - 1, i[1], "^"))
+            if(env[i[0] - 1][i[1]] != obstacleFlag):
+                upAllowed = True
+                B.append((i[0] - 1, i[1], "^"))
         # Down
         if(i[0] + 1 < m):
-            B.append((i[0] + 1, i[1], "v"))
+            if(env[i[0] + 1][i[1]] != obstacleFlag):
+                downAllowed = True
+                B.append((i[0] + 1, i[1], "v"))
         # Left
         if(i[1] - 1 >= 0):
-            B.append((i[0], i[1] - 1, "<"))
+            if(env[i[0]][i[1] - 1] != obstacleFlag):
+                leftAllowed = True
+                B.append((i[0], i[1] - 1, "<"))
         # Right
         if(i[1] + 1 < n):
-            B.append((i[0], i[1] + 1, ">"))
+            if(env[i[0]][i[1] + 1] != obstacleFlag):
+                rightAllowed = True
+                B.append((i[0], i[1] + 1, ">"))
         # Up-Left
-        if(i[0] - 1 >= 0 and i[1] - 1 >= 0 ):
-            B.append((i[0] - 1, i[1] - 1, "a"))
+        if(i[0] - 1 >= 0 and i[1] - 1 >= 0):
+            if(env[i[0] - 1][i[1] - 1] != obstacleFlag):
+                upleftAllowed = True
+                B.append((i[0] - 1, i[1] - 1, "a"))
         # Up-Right
         if(i[0] - 1 >= 0 and i[1] + 1 < n):
-            B.append((i[0] - 1, i[1] + 1, "b"))
+            if(env[i[0] - 1][i[1] + 1] != obstacleFlag):
+                uprightAllowed = True
+                B.append((i[0] - 1, i[1] + 1, "b"))
         # Down-Left
         if(i[0] + 1 < m and i[1] - 1 >= 0):
-            B.append((i[0] + 1, i[1] - 1, "c"))
+            if(env[i[0] + 1][i[1] - 1] != obstacleFlag):
+                downleftAllowed = True
+                B.append((i[0] + 1, i[1] - 1, "c"))
         # Down-Right
         if(i[0] + 1 < m and i[1] + 1 < n):
-            B.append((i[0] + 1, i[1] + 1, "d"))
+            if(env[i[0] + 1][i[1] + 1] != obstacleFlag):
+                downrightAllowed = True
+                B.append((i[0] + 1, i[1] + 1, "d"))
+
+        # Up-Up-Left
+        if(i[0] - 2 >= 0 and i[1] - 1 >= 0 and upAllowed and upleftAllowed and leftAllowed):
+            if(env[i[0] - 2][i[1] - 1] != obstacleFlag):
+                B.append((i[0] - 2, i[1] - 1, "m"))
+        # Up-Up-Right
+        if(i[0] - 2 >= 0 and i[1] + 1 < n and upAllowed and uprightAllowed and rightAllowed):
+            if(env[i[0] - 2][i[1] + 1] != obstacleFlag):
+                B.append((i[0] - 2, i[1] + 1, "n"))
+        # Up-Left-Left
+        if(i[0] - 1 >= 0 and i[1] - 2 >= 0 and upAllowed and upleftAllowed and leftAllowed):
+            if(env[i[0] - 1][i[1] - 2] != obstacleFlag):
+                B.append((i[0] - 1, i[1] - 2, "o"))
+        # Up-Right-Right
+        if(i[0] - 1 >= 0 and i[1] + 2 < n and upAllowed and uprightAllowed and rightAllowed):
+            if(env[i[0] - 1][i[1] + 2] != obstacleFlag):
+                B.append((i[0] - 1, i[1] + 2, "p"))
+        # Down-Down-Left
+        if(i[0] + 2 < m and i[1] - 1 >= 0 and downAllowed and downleftAllowed and leftAllowed):
+            if(env[i[0] + 2][i[1] - 1] != obstacleFlag):
+                B.append((i[0] + 2, i[1] - 1, "w"))
+        # Down-Down-Right
+        if(i[0] + 2 < m and i[1] + 1 < n and downAllowed and downrightAllowed and rightAllowed):
+            if(env[i[0] + 2][i[1] + 1] != obstacleFlag):
+                B.append((i[0] + 2, i[1] + 1, "x"))
+        # Down-Left-Left
+        if(i[0] + 1 < m and i[1] - 2 >= 0 and downAllowed and downleftAllowed and leftAllowed):
+            if(env[i[0] + 1][i[1] - 2] != obstacleFlag):
+                B.append((i[0] + 1, i[1] - 2, "y"))
+        # Down-Right-Right
+        if(i[0] + 1 < m and i[1] + 2 < n and downAllowed and downrightAllowed and rightAllowed):
+            if(env[i[0] + 1][i[1] + 2] != obstacleFlag):
+                B.append((i[0] + 1, i[1] + 2, "z"))
+
 
 	return B
 
@@ -314,8 +375,8 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
         dist = pow((pow(i[0] - j[0], 2) + pow(i[1] - j[1], 2)), 0.5)
         return dist
 
-    def f(i, m, n, cost2go, D_max):
-        B = getNeighbors(i, m, n)
+    def f(i, m, n, cost2go, D_max, env):
+        B = getNeighbors(i, m, n, env)
 
         cost_min = D_max
         b_min = (None, None, "-")
@@ -341,7 +402,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
         # Else, calculate cost normally
         else:
-            c, b = f(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max)
+            c, b = f(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max, occgrid)
             cost = min(D_max, c)
             action = b[2]
 
@@ -360,8 +421,6 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
                     getNewCost(i, G, occgrid, m, n, cost2go, D_max)
 
         print (k)
-
-    np.savetxt("ESTSF.txt", action2go, delimiter = "|", fmt="%s")
 
     return cost2go, work2go, action2go, history
 
