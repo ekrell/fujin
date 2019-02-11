@@ -1,14 +1,38 @@
 import numpy as np
 
 def move(loc, act):
-    if   act == "^": 
+    if   act == "^":
         return (loc[0] - 1, loc[1])
-    elif act == "v": 
+    elif act == "v":
         return (loc[0] + 1, loc[1])
     elif act == "<":
         return (loc[0],     loc[1] - 1)
     elif act == ">":
         return (loc[0],     loc[1] + 1)
+    elif act == "a":
+        return (loc[0] - 1, loc[1] - 1)
+    elif act == "b":
+        return (loc[0] - 1, loc[1] + 1)
+    elif act == "c":
+        return (loc[0] + 1, loc[1] - 1)
+    elif act == "d":
+        return (loc[0] + 1, loc[1] + 1)
+    elif act == "m":
+        return (loc[0] - 2, loc[1] - 1)
+    elif act == "n":
+        return (loc[0] - 2, loc[1] + 1)
+    elif act == "o":
+        return (loc[0] - 1, loc[1] - 2)
+    elif act == "p":
+        return (loc[0] - 1, loc[1] + 2)
+    elif act == "w":
+        return (loc[0] + 2, loc[1] - 1)
+    elif act == "x":
+        return (loc[0] + 2, loc[1] + 1)
+    elif act == "y":
+        return (loc[0] + 1, loc[1] - 2)
+    elif act == "z":
+        return (loc[0] + 1, loc[1] + 2)
     else:
         return loc
 
@@ -24,7 +48,7 @@ def followPath(start, actiongrid):
     acts      = [act]
     trace     = [loc]
     waypoints = [loc]
-    
+
     while actiongrid[loc[0]][loc[1]] != "*":
         loc = move(loc, act)
         act = actiongrid[loc[0]][loc[1]]
@@ -84,5 +108,5 @@ def printStatPath(pstat, copious = True):
         print("  cost:        %d" % (pstat["cost_sum"]))
         print("--------")
 
-    return 
+    return
 

@@ -182,19 +182,27 @@ def parseOptions():
 
 def getTraveler(start, target, speed_cps, travelType):
 
-    travelTypes = ["4way", "8way"]
+    travelTypes = ["4way", "8way", "16way"]
 
-    action2radians = { ">"  : 0.0,
-                       "UR" : pi / 4.0,
-                       "^"  : pi / 2.0,
-                       "UL" : pi * 0.75,
-                       "<"  : pi,
-                       "DL" : pi * 1.25,
-                       "v"  : pi * 1.5,
-                       "DR" : pi * 1.75,
-                       "*"  : 0,
-                       "-"  : 0,
-                       " "  : 0,
+    action2radians = { ">" : 0.0,
+                       "b" : pi / 4.0,
+                       "^" : pi / 2.0,
+                       "a" : pi * 0.75,
+                       "<" : pi,
+                       "c" : pi * 1.25,
+                       "v" : pi * 1.5,
+                       "d" : pi * 1.75,
+                       "m" : (pi / 2.0)  + 0.5 * ((pi * 0.75) - (pi / 2.0)),
+                       "n" : (pi / 4.0)  + 0.5 * ((pi / 2.0)  - (pi / 4.0)),
+                       "o" : (pi * 0.75) + 0.5 * ((pi)        - (pi * 0.75)),
+                       "p" : (0.0)       + 0.5 * ((pi / 4.00) - (0.0)),
+                       "w" : (pi * 1.25) + 0.5 * ((pi * 1.5)  - (pi * 1.25)),
+                       "x" : (pi * 1.5)  + 0.5 * ((pi * 1.75) - (pi * 1.5)),
+                       "y" : (pi)        + 0.5 * ((pi * 1.25) - (pi)),
+                       "z" : (pi * 1.75) + 0.5 * ((pi * 2)    - (pi * 1.75)),
+                       "*" : 0,
+                       "-" : 0,
+                       " " : 0,
                     }
 
     traveler = { "start"          : start,
@@ -208,7 +216,10 @@ def getTraveler(start, target, speed_cps, travelType):
         traveler["actionspace"] = ["*", "^",  "v",  "<",  ">"]
     elif travelType == travelTypes[1]:
         traveler["actionspace"] = ["*", "^",  "v",  "<",  ">",
-                                        "UL", "UR", "DL", "DR"]
+                                        "a", "b", "c", "d"]
+    elif travelType == travelTypes[2]:
+        traveler["actionspace"] = ["*", "^",  "v",  "<",  ">",
+         "a", "b", "c", "d", "m", "n", "o", "p", "w", "x", "y", "z"]
     return traveler
 
 

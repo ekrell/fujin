@@ -4,6 +4,97 @@ import numpy as np
 import itertools
 import time
 
+def getNeighbors(i, m, n, env, obstacleFlag = 1):
+
+
+    B = []
+
+    upAllowed        = False
+    downAllowed      = False
+    leftAllowed      = False
+    rightAllowed     = False
+    upleftAllowed    = False
+    uprightAllowed   = False
+    downleftAllowed  = False
+    downrightAllowed = False
+
+    # Up
+    if(i[0] - 1 >= 0):
+        if(env[i[0] - 1][i[1]] != obstacleFlag):
+            upAllowed = True
+            B.append((i[0] - 1, i[1], "^"))
+    # Down
+    if(i[0] + 1 < m):
+        if(env[i[0] + 1][i[1]] != obstacleFlag):
+            downAllowed = True
+            B.append((i[0] + 1, i[1], "v"))
+    # Left
+    if(i[1] - 1 >= 0):
+        if(env[i[0]][i[1] - 1] != obstacleFlag):
+            leftAllowed = True
+            B.append((i[0], i[1] - 1, "<"))
+    # Right
+    if(i[1] + 1 < n):
+        if(env[i[0]][i[1] + 1] != obstacleFlag):
+            rightAllowed = True
+            B.append((i[0], i[1] + 1, ">"))
+    # Up-Left
+    if(i[0] - 1 >= 0 and i[1] - 1 >= 0):
+        if(env[i[0] - 1][i[1] - 1] != obstacleFlag):
+            upleftAllowed = True
+            B.append((i[0] - 1, i[1] - 1, "a"))
+    # Up-Right
+    if(i[0] - 1 >= 0 and i[1] + 1 < n):
+        if(env[i[0] - 1][i[1] + 1] != obstacleFlag):
+            uprightAllowed = True
+            B.append((i[0] - 1, i[1] + 1, "b"))
+    # Down-Left
+    if(i[0] + 1 < m and i[1] - 1 >= 0):
+        if(env[i[0] + 1][i[1] - 1] != obstacleFlag):
+            downleftAllowed = True
+            B.append((i[0] + 1, i[1] - 1, "c"))
+    # Down-Right
+    if(i[0] + 1 < m and i[1] + 1 < n):
+        if(env[i[0] + 1][i[1] + 1] != obstacleFlag):
+            downrightAllowed = True
+            B.append((i[0] + 1, i[1] + 1, "d"))
+    # Up-Up-Left
+    if(i[0] - 2 >= 0 and i[1] - 1 >= 0 and upAllowed and upleftAllowed and leftAllowed):
+        if(env[i[0] - 2][i[1] - 1] != obstacleFlag):
+            B.append((i[0] - 2, i[1] - 1, "m"))
+    # Up-Up-Right
+    if(i[0] - 2 >= 0 and i[1] + 1 < n and upAllowed and uprightAllowed and rightAllowed):
+        if(env[i[0] - 2][i[1] + 1] != obstacleFlag):
+            B.append((i[0] - 2, i[1] + 1, "n"))
+    # Up-Left-Left
+    if(i[0] - 1 >= 0 and i[1] - 2 >= 0 and upAllowed and upleftAllowed and leftAllowed):
+        if(env[i[0] - 1][i[1] - 2] != obstacleFlag):
+            B.append((i[0] - 1, i[1] - 2, "o"))
+    # Up-Right-Right
+    if(i[0] - 1 >= 0 and i[1] + 2 < n and upAllowed and uprightAllowed and rightAllowed):
+        if(env[i[0] - 1][i[1] + 2] != obstacleFlag):
+            B.append((i[0] - 1, i[1] + 2, "p"))
+    # Down-Down-Left
+    if(i[0] + 2 < m and i[1] - 1 >= 0 and downAllowed and downleftAllowed and leftAllowed):
+        if(env[i[0] + 2][i[1] - 1] != obstacleFlag):
+            B.append((i[0] + 2, i[1] - 1, "w"))
+    # Down-Down-Right
+    if(i[0] + 2 < m and i[1] + 1 < n and downAllowed and downrightAllowed and rightAllowed):
+        if(env[i[0] + 2][i[1] + 1] != obstacleFlag):
+            B.append((i[0] + 2, i[1] + 1, "x"))
+    # Down-Left-Left
+    if(i[0] + 1 < m and i[1] - 2 >= 0 and downAllowed and downleftAllowed and leftAllowed):
+        if(env[i[0] + 1][i[1] - 2] != obstacleFlag):
+            B.append((i[0] + 1, i[1] - 2, "y"))
+    # Down-Right-Right
+    if(i[0] + 1 < m and i[1] + 2 < n and downAllowed and downrightAllowed and rightAllowed):
+        if(env[i[0] + 1][i[1] + 2] != obstacleFlag):
+            B.append((i[0] + 1, i[1] + 2, "z"))
+
+
+    return B
+
+
 def getWorldActionsForCell(row, col, ugrids, vgrids, errors):
 
     numVectors = len(ugrids)
@@ -12,6 +103,7 @@ def getWorldActionsForCell(row, col, ugrids, vgrids, errors):
     vranges = [None for i in range(numVectors)]
 
     numActions = 1
+
     for g in range(numVectors):
         uranges[g] = np.linspace(ugrids[g][row][col] - errors[g], ugrids[g][row][col] + errors[g], 10)
         vranges[g] = np.linspace(vgrids[g][row][col] - errors[g], vgrids[g][row][col] + errors[g], 10)
@@ -65,7 +157,9 @@ def uv2magdir(u, v):
     d = atan2(v, u)
     return m, d
 
-def getOutcome(move, us, vs, weights, traveler, cost2go = None, row = None, col = None):
+def getOutcome(move, us, vs, weights, traveler,
+        cost2go = None, row = None, col = None, d_max = 10000000000000000000):
+
 
     # Get resultant vector of all weighted world sources
     uw, vw = getVectorSum(us, vs, weights)
@@ -85,51 +179,148 @@ def getOutcome(move, us, vs, weights, traveler, cost2go = None, row = None, col 
     # Dynamic programming: include cost2go
     if cost2go is not None and row is not None and col is not None:
 
+        m = len(cost2go)
+        n = len(cost2go[0])
+
         if move == "^":
             if row > 0:
                 workc = work + cost2go[row - 1][col]
             else:
-                workc = work + 100000000000
-        if move == "v":
+                workc = work + d_max
+        elif move == "v":
             if row < len(cost2go) - 1:
                 workc = work + cost2go[row + 1][col]
             else:
-                workc = work + 100000000000
-        if move == "<":
+                workc = work + d_max
+        elif move == "<":
             if col > 0:
                 workc = work + cost2go[row][col - 1]
             else:
-                workc = work + 100000000000
-        if move == ">":
+                workc = work + d_max
+        elif move == ">":
             if col < len(cost2go[0]) - 1:
                 workc = work + cost2go[row][col + 1]
             else:
-                workc = work + 100000000000
-        if move == "*":
-            workc = 100000000000
+                workc = work + d_max
+
+        elif move == "a":
+            if row - 1 >= 0 and col - 1 >= 0:
+                workc = work + cost2go[row - 1][col - 1]
+            else:
+                workc = work + d_max
+        elif move == "b":
+            if row - 1 >= 0 and col + 1 < n:
+                workc = work + cost2go[row - 1][col + 1]
+            else:
+                workc = work + d_max
+        elif move == "c":
+            if row + 1 < m and col - 1 >= 0:
+                workc = work + cost2go[row + 1][col - 1]
+            else:
+                workc = work + d_max
+        elif move == "d":
+            if row + 1 < m and col + 1 < n:
+                workc = work + cost2go[row + 1][col + 1]
+            else:
+                workc = work + d_max
+        elif move == "m":
+            if (row - 2 >= 0 and col - 1 >= 0) and \
+                   (col - 1 >= 0) and (row - 1 >= 0) and \
+                   (row - 1 >= 0 and col - 1 >= 0):
+                workc = work + cost2go[row - 2][col - 1]
+            else:
+                workc = work + d_max
+        elif move == "n":
+            if (row - 2 >= 0 and col + 1 < n) and \
+                   (row - 1 >= 0) and (col + 1 < n) and \
+                   (row - 1 >= 0 and col + 1 < n):
+                workc = work + cost2go[row - 2][col + 1]
+            else:
+                workc = work + d_max
+        elif move == "o":
+            if (row - 1 >= 0 and col - 2 >= 0) and \
+                   (row - 1 >= 0) and (col - 1 >= 0) and \
+                   (row - 1 >= 0 and col - 1 >= 0):
+                workc = work + cost2go[row - 1][col - 2]
+            else:
+                workc = work + d_max
+        elif move == "p":
+            if (row - 1 >= 0 and col + 2 < n) and \
+                   (row - 1 >= 0) and (col + 1 < n) and \
+                   (row - 1 >= 0 and col + 1 < n):
+                workc = work + cost2go[row - 1][col + 2]
+            else:
+                workc = work + d_max
+        elif move == "w":
+            if (row + 2 < m and col - 1 >= 0) and \
+                   (row + 1 < m) and (col - 1 >= 0) and \
+                   (row + 1 < m and col - 1 >= 0):
+                workc = work + cost2go[row + 2][col - 1]
+            else:
+                workc = work + d_max
+        elif move == "x":
+            if (row + 2 < m and col + 1 < n) and \
+                   (row + 1 < m) and (col + 1 < n) and \
+                   (row + 1 < m and col + 1 < n):
+                workc = work + cost2go[row + 2][col + 1]
+            else:
+                workc = work + d_max
+        elif move == "y":
+            if (row + 1 < m and col - 2 >= 0) and \
+                   (row + 1 < m) and (col - 1 >= 0) and \
+                   (row + 1 < m and col - 1 >= 0):
+                workc = work + cost2go[row + 1][col - 2]
+            else:
+                workc = work + d_max
+        elif move == "z":
+            if (row + 1 < m and col + 2 < n) and \
+                   (row + 1 < m) and (col + 1 < n) and \
+                   (row + 1 < m and col + 1 < n):
+                workc = work + cost2go[row + 1][col + 2]
+            else:
+                workc = work + d_max
+        elif move == "*":
+                workc = d_max
+
+        else:
+            print("Invalid move")
+
 
     return workc, work
 
-def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, cost2go = None):
-
+def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, env, cost2go = None):
     world_actionspace = getWorldActionsForCell(row, col, ugrids, vgrids, errors)
 
     game = [[0 for wa in range(world_actionspace["num"])] for ta in traveler["actionspace"]]
     game_work = [[0 for wa in range(world_actionspace["num"])] for ta in traveler["actionspace"]]
 
+    B = getNeighbors((row, col), env.shape[0], env.shape[1], env)
+    Bmove = [b[2] for b in B]
+
+    Bvalid = False
     for r in range(len(game)):
+        #print(Bmove, traveler["actionspace"][r])
+        if traveler["actionspace"][r] in Bmove:
+            Bvalid = True
         for c in range(len(game[0])):
-            game[r][c], game_work[r][c] = getOutcome(traveler["actionspace"][r],
-                    world_actionspace["uactions"][c], world_actionspace["vactions"][c],
-                    weights, traveler, cost2go, row, col)
+            if Bvalid:
+                game[r][c], game_work[r][c] = getOutcome(traveler["actionspace"][r],
+                        world_actionspace["uactions"][c], world_actionspace["vactions"][c],
+                        weights, traveler, cost2go, row, col)
+            else: # If invalid move, do not bother with work
+                game[r][c], game_work[r][c] = 100000000000, 100000000000
 
     game      = np.array(game)
     game_work = np.array(game_work)
 
-    R = [201, 333, 466, 599]
-    C = [201, 333, 466, 599]
-    if row in R and col in C:
-        np.savetxt("test/games/game_4way_res50_scale100_" + str(row) + "-" + str(col) + ".txt", game)
+    #R = [201, 333, 466, 599]
+    #C = [201, 333, 466, 599]
+    #if row in R and col in C:
+    #    np.savetxt("test/games/game_4way_res50_scale100_" + str(row) + "-" + str(col) + ".txt", game)
+
+    #if (row + 1, col) == traveler["target"]:
+    #    print(game)
+    #    exit()
 
     return game, game_work
 
@@ -279,97 +470,6 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
         iterations = M
 
     # Get neighbors
-    def getNeighbors(i, m, n, env, obstacleFlag = 1):
-
-
-        B = []
-
-        upAllowed        = False
-        downAllowed      = False
-        leftAllowed      = False
-        rightAllowed     = False
-        upleftAllowed    = False
-        uprightAllowed   = False
-        downleftAllowed  = False
-        downrightAllowed = False
-
-        # Up
-        if(i[0] - 1 >= 0):
-            if(env[i[0] - 1][i[1]] != obstacleFlag):
-                upAllowed = True
-                B.append((i[0] - 1, i[1], "^"))
-        # Down
-        if(i[0] + 1 < m):
-            if(env[i[0] + 1][i[1]] != obstacleFlag):
-                downAllowed = True
-                B.append((i[0] + 1, i[1], "v"))
-        # Left
-        if(i[1] - 1 >= 0):
-            if(env[i[0]][i[1] - 1] != obstacleFlag):
-                leftAllowed = True
-                B.append((i[0], i[1] - 1, "<"))
-        # Right
-        if(i[1] + 1 < n):
-            if(env[i[0]][i[1] + 1] != obstacleFlag):
-                rightAllowed = True
-                B.append((i[0], i[1] + 1, ">"))
-        # Up-Left
-        if(i[0] - 1 >= 0 and i[1] - 1 >= 0):
-            if(env[i[0] - 1][i[1] - 1] != obstacleFlag):
-                upleftAllowed = True
-                B.append((i[0] - 1, i[1] - 1, "a"))
-        # Up-Right
-        if(i[0] - 1 >= 0 and i[1] + 1 < n):
-            if(env[i[0] - 1][i[1] + 1] != obstacleFlag):
-                uprightAllowed = True
-                B.append((i[0] - 1, i[1] + 1, "b"))
-        # Down-Left
-        if(i[0] + 1 < m and i[1] - 1 >= 0):
-            if(env[i[0] + 1][i[1] - 1] != obstacleFlag):
-                downleftAllowed = True
-                B.append((i[0] + 1, i[1] - 1, "c"))
-        # Down-Right
-        if(i[0] + 1 < m and i[1] + 1 < n):
-            if(env[i[0] + 1][i[1] + 1] != obstacleFlag):
-                downrightAllowed = True
-                B.append((i[0] + 1, i[1] + 1, "d"))
-
-        # Up-Up-Left
-        if(i[0] - 2 >= 0 and i[1] - 1 >= 0 and upAllowed and upleftAllowed and leftAllowed):
-            if(env[i[0] - 2][i[1] - 1] != obstacleFlag):
-                B.append((i[0] - 2, i[1] - 1, "m"))
-        # Up-Up-Right
-        if(i[0] - 2 >= 0 and i[1] + 1 < n and upAllowed and uprightAllowed and rightAllowed):
-            if(env[i[0] - 2][i[1] + 1] != obstacleFlag):
-                B.append((i[0] - 2, i[1] + 1, "n"))
-        # Up-Left-Left
-        if(i[0] - 1 >= 0 and i[1] - 2 >= 0 and upAllowed and upleftAllowed and leftAllowed):
-            if(env[i[0] - 1][i[1] - 2] != obstacleFlag):
-                B.append((i[0] - 1, i[1] - 2, "o"))
-        # Up-Right-Right
-        if(i[0] - 1 >= 0 and i[1] + 2 < n and upAllowed and uprightAllowed and rightAllowed):
-            if(env[i[0] - 1][i[1] + 2] != obstacleFlag):
-                B.append((i[0] - 1, i[1] + 2, "p"))
-        # Down-Down-Left
-        if(i[0] + 2 < m and i[1] - 1 >= 0 and downAllowed and downleftAllowed and leftAllowed):
-            if(env[i[0] + 2][i[1] - 1] != obstacleFlag):
-                B.append((i[0] + 2, i[1] - 1, "w"))
-        # Down-Down-Right
-        if(i[0] + 2 < m and i[1] + 1 < n and downAllowed and downrightAllowed and rightAllowed):
-            if(env[i[0] + 2][i[1] + 1] != obstacleFlag):
-                B.append((i[0] + 2, i[1] + 1, "x"))
-        # Down-Left-Left
-        if(i[0] + 1 < m and i[1] - 2 >= 0 and downAllowed and downleftAllowed and leftAllowed):
-            if(env[i[0] + 1][i[1] - 2] != obstacleFlag):
-                B.append((i[0] + 1, i[1] - 2, "y"))
-        # Down-Right-Right
-        if(i[0] + 1 < m and i[1] + 2 < n and downAllowed and downrightAllowed and rightAllowed):
-            if(env[i[0] + 1][i[1] + 2] != obstacleFlag):
-                B.append((i[0] + 1, i[1] + 2, "z"))
-
-
-	return B
-
     # Distance between location i and j
     def distance(i, j):
         dist = pow((pow(i[0] - j[0], 2) + pow(i[1] - j[1], 2)), 0.5)
@@ -388,13 +488,29 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
         return cost_min, b_min
 
-    def getNewCost(i, G, occgrid, m, n, cost2go, D_max):
+    def f_work(i, m, n, cost2go, D_max, env,
+            traveler, ugrids, vgrids, egrids, wgrids,
+            method):
+        errors = [e[row][col] for e in egrids]
+        weights = [w[row][col] for w in wgrids]
+        g, g_work = getGameForCell(i[0], i[1], traveler, ugrids, vgrids,
+                                             errors, weights, env, cost2go)
+        solution             = solveGame(g, method)
+        #cost2go[row][col]    = solution[4]
+        #work2go[row][col]    = g_work[solution[2], solution[3]]
+        #actiongrid[row][col] = traveler["actionspace"][solution[2]]
+        return (solution[4], traveler["actionspace"][solution[2]])
+
+
+    def getNewCost(i, G, occgrid, m, n, cost2go, D_max,
+            traveler, ugrids, vgrids, egrids, wgrids):
         cost = D_max
         action = " "
 
         # Check if target location
         if i == G:
             cost = 0
+            action = "*"
 
         # Check if obstacle
         elif occgrid[i[0]][i[1]] == 1:
@@ -402,10 +518,17 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
         # Else, calculate cost normally
         else:
-            c, b = f(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max, occgrid)
-            cost = min(D_max, c)
-            action = b[2]
+            #c, b = f(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max)
 
+            c, b = f_work(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max,
+                    occgrid, traveler, ugrids, vgrids, egrids, wgrids, 0)
+            if c >= D_max:
+                cost = D_max
+                action = '-'
+            else:
+                cost = c
+                action = b
+            #print(action, cost, D_max)
         return cost, action
 
     cost2go = np.zeros((full_m, full_n)) + D_max
@@ -418,9 +541,9 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
             for col in range(bounds["upperleft"][1], bounds["lowerright"][1]):
                 i = (row, col)
                 cost2go[i[0]][i[1]], action2go[i[0]][i[1]] = \
-                    getNewCost(i, G, occgrid, m, n, cost2go, D_max)
-
-        print (k)
+                    getNewCost(i, G, occgrid, m, n, cost2go, D_max,
+                            traveler, ugrids, vgrids, egrids, wgrids)
+        print("Iteration: " + str(k) + "/" + str(iterations))
 
     return cost2go, work2go, action2go, history
 
@@ -535,11 +658,7 @@ def writeActiongrid(actiongrid, actionfile, bounds = None):
     af = open(actionfile, 'w')
     for row in range(numrows):
         for col in range(numcols):
-
-
             af.write("%s" % actiongrid[row][col])
-
-
         af.write("\n")
     af.close()
 

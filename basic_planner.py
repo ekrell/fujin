@@ -18,7 +18,7 @@ def main():
 
     print(settings)
 
-    traveler = env_setup.getTraveler(settings["start"], settings["target"], speed_cps, "4way")
+    traveler = env_setup.getTraveler(settings["start"], settings["target"], speed_cps, "16way")
     env_setup.printEnv(settings)
     occgrid = env_setup.getOccupancyGrid(settings["occupancy"])
     ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"], settings["vcomponents"], occgrid)
@@ -51,6 +51,7 @@ def main():
         cost2go    = np.loadtxt(settings["files"]["cost2go"])
         work2go    = np.loadtxt(settings["files"]["work2go"])
         actiongrid = solver_tools.readActiongrid(settings["files"]["actiongrid"])
+
         if settings["files"]["pickle"] is not None:
             with open(settings["files"]["pickle"], 'rb') as handle:
                 history = pickle.load(handle)
@@ -102,12 +103,15 @@ def main():
                                           occgrid, settings["files"]["plots"])
         ax = visual_tools.plotVector(ugrids, vgrids, settings["occupancy"][0],
                                           occgrid, settings["files"]["plots"])
-        ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0],
-                  occgrid, settings["files"]["plots"] + "_full", init = False)
 
     if actiongrid is not None:
         visual_tools.plotActions(actiongrid, traveler["action2radians"], settings["occupancy"][0],
                                                               occgrid, settings["files"]["plots"])
+
+    if settings["files"]["plots"] is not None:
+        ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0],
+                occgrid, settings["files"]["plots"] + "_full", init = False)
+
 
 if __name__ == "__main__":
     main()
