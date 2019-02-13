@@ -213,12 +213,12 @@ def getTraveler(start, target, speed_cps, travelType):
                }
 
     if   travelType == travelTypes[0]:
-        traveler["actionspace"] = ["*", "^",  "v",  "<",  ">"]
+        traveler["actionspace"] = ["^",  "v",  "<",  ">"]
     elif travelType == travelTypes[1]:
-        traveler["actionspace"] = ["*", "^",  "v",  "<",  ">",
+        traveler["actionspace"] = ["^",  "v",  "<",  ">",
                                         "a", "b", "c", "d"]
     elif travelType == travelTypes[2]:
-        traveler["actionspace"] = ["*", "^",  "v",  "<",  ">",
+        traveler["actionspace"] = ["^",  "v",  "<",  ">",
          "a", "b", "c", "d", "m", "n", "o", "p", "w", "x", "y", "z"]
     return traveler
 

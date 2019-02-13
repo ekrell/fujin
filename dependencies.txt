@@ -1,7 +1,9 @@
 Python dependencies:
 numpy
-Pillo
-pyton-gdal
+scipy
+pandas
+Pillow
+python-gdal
 matplotlib
 mpltoolkits.basemap
 georaster
@@ -10,3 +12,17 @@ georaster
 -------------------
 System dependencies:
 gdal
+
+
+
+
+--------------
+SCRIPT:
+
+sudo apt-get install python-pandas
+sudo apt-get install python-pip
+sudo apt-get install python-scipy
+sudo apt-get install gdal-bin python-gdal
+sudo apt-get install python-matplotlib
+sudo apt-get install python-mpltoolkits.basemap
+sudo pip install georaster

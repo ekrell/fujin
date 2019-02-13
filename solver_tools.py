@@ -90,8 +90,6 @@ def getNeighbors(i, m, n, env, obstacleFlag = 1):
     if(i[0] + 1 < m and i[1] + 2 < n and downAllowed and downrightAllowed and rightAllowed):
         if(env[i[0] + 1][i[1] + 2] != obstacleFlag):
             B.append((i[0] + 1, i[1] + 2, "z"))
-
-
     return B
 
 
@@ -157,8 +155,8 @@ def uv2magdir(u, v):
     d = atan2(v, u)
     return m, d
 
-def getOutcome(move, us, vs, weights, traveler,
-        cost2go = None, row = None, col = None, d_max = 10000000000000000000):
+def getOutcome(move, us, vs, weights, traveler, D_max,
+        cost2go = None, row = None, col = None):
 
 
     # Get resultant vector of all weighted world sources
@@ -183,102 +181,101 @@ def getOutcome(move, us, vs, weights, traveler,
         n = len(cost2go[0])
 
         if move == "^":
-            if row > 0:
-                workc = work + cost2go[row - 1][col]
-            else:
-                workc = work + d_max
+        #    if row > 0:
+            workc = work + cost2go[row - 1][col]
+        #    else:
+        #        workc = work + d_max
         elif move == "v":
-            if row < len(cost2go) - 1:
-                workc = work + cost2go[row + 1][col]
-            else:
-                workc = work + d_max
+        #    if row < len(cost2go) - 1:
+            workc = work + cost2go[row + 1][col]
+        #    else:
+        #        workc = work + d_max
         elif move == "<":
-            if col > 0:
-                workc = work + cost2go[row][col - 1]
-            else:
-                workc = work + d_max
+        #    if col > 0:
+            workc = work + cost2go[row][col - 1]
+        #    else:
+        #        workc = work + d_max
         elif move == ">":
-            if col < len(cost2go[0]) - 1:
-                workc = work + cost2go[row][col + 1]
-            else:
-                workc = work + d_max
-
+        #    if col < len(cost2go[0]) - 1:
+            workc = work + cost2go[row][col + 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "a":
-            if row - 1 >= 0 and col - 1 >= 0:
-                workc = work + cost2go[row - 1][col - 1]
-            else:
-                workc = work + d_max
+        #    if row - 1 >= 0 and col - 1 >= 0:
+            workc = work + cost2go[row - 1][col - 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "b":
-            if row - 1 >= 0 and col + 1 < n:
-                workc = work + cost2go[row - 1][col + 1]
-            else:
-                workc = work + d_max
+        #    if row - 1 >= 0 and col + 1 < n:
+            workc = work + cost2go[row - 1][col + 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "c":
-            if row + 1 < m and col - 1 >= 0:
-                workc = work + cost2go[row + 1][col - 1]
-            else:
-                workc = work + d_max
+        #    if row + 1 < m and col - 1 >= 0:
+            workc = work + cost2go[row + 1][col - 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "d":
-            if row + 1 < m and col + 1 < n:
-                workc = work + cost2go[row + 1][col + 1]
-            else:
-                workc = work + d_max
+        #    if row + 1 < m and col + 1 < n:
+            workc = work + cost2go[row + 1][col + 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "m":
-            if (row - 2 >= 0 and col - 1 >= 0) and \
-                   (col - 1 >= 0) and (row - 1 >= 0) and \
-                   (row - 1 >= 0 and col - 1 >= 0):
-                workc = work + cost2go[row - 2][col - 1]
-            else:
-                workc = work + d_max
+        #    if (row - 2 >= 0 and col - 1 >= 0) and \
+        #           (col - 1 >= 0) and (row - 1 >= 0) and \
+        #           (row - 1 >= 0 and col - 1 >= 0):
+            workc = work + cost2go[row - 2][col - 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "n":
-            if (row - 2 >= 0 and col + 1 < n) and \
-                   (row - 1 >= 0) and (col + 1 < n) and \
-                   (row - 1 >= 0 and col + 1 < n):
-                workc = work + cost2go[row - 2][col + 1]
-            else:
-                workc = work + d_max
+        #    if (row - 2 >= 0 and col + 1 < n) and \
+        #           (row - 1 >= 0) and (col + 1 < n) and \
+        #           (row - 1 >= 0 and col + 1 < n):
+            workc = work + cost2go[row - 2][col + 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "o":
-            if (row - 1 >= 0 and col - 2 >= 0) and \
-                   (row - 1 >= 0) and (col - 1 >= 0) and \
-                   (row - 1 >= 0 and col - 1 >= 0):
-                workc = work + cost2go[row - 1][col - 2]
-            else:
-                workc = work + d_max
+        #    if (row - 1 >= 0 and col - 2 >= 0) and \
+        #           (row - 1 >= 0) and (col - 1 >= 0) and \
+        #           (row - 1 >= 0 and col - 1 >= 0):
+            workc = work + cost2go[row - 1][col - 2]
+        #    else:
+        #        workc = work + d_max
         elif move == "p":
-            if (row - 1 >= 0 and col + 2 < n) and \
-                   (row - 1 >= 0) and (col + 1 < n) and \
-                   (row - 1 >= 0 and col + 1 < n):
-                workc = work + cost2go[row - 1][col + 2]
-            else:
-                workc = work + d_max
+        #    if (row - 1 >= 0 and col + 2 < n) and \
+        #           (row - 1 >= 0) and (col + 1 < n) and \
+        #           (row - 1 >= 0 and col + 1 < n):
+            workc = work + cost2go[row - 1][col + 2]
+        #    else:
+        #        workc = work + d_max
         elif move == "w":
-            if (row + 2 < m and col - 1 >= 0) and \
-                   (row + 1 < m) and (col - 1 >= 0) and \
-                   (row + 1 < m and col - 1 >= 0):
-                workc = work + cost2go[row + 2][col - 1]
-            else:
-                workc = work + d_max
+        #    if (row + 2 < m and col - 1 >= 0) and \
+        #           (row + 1 < m) and (col - 1 >= 0) and \
+        #           (row + 1 < m and col - 1 >= 0):
+            workc = work + cost2go[row + 2][col - 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "x":
-            if (row + 2 < m and col + 1 < n) and \
-                   (row + 1 < m) and (col + 1 < n) and \
-                   (row + 1 < m and col + 1 < n):
-                workc = work + cost2go[row + 2][col + 1]
-            else:
-                workc = work + d_max
+        #    if (row + 2 < m and col + 1 < n) and \
+        #           (row + 1 < m) and (col + 1 < n) and \
+        #           (row + 1 < m and col + 1 < n):
+            workc = work + cost2go[row + 2][col + 1]
+        #    else:
+        #        workc = work + d_max
         elif move == "y":
-            if (row + 1 < m and col - 2 >= 0) and \
-                   (row + 1 < m) and (col - 1 >= 0) and \
-                   (row + 1 < m and col - 1 >= 0):
-                workc = work + cost2go[row + 1][col - 2]
-            else:
-                workc = work + d_max
+        #    if (row + 1 < m and col - 2 >= 0) and \
+        #           (row + 1 < m) and (col - 1 >= 0) and \
+        #           (row + 1 < m and col - 1 >= 0):
+            workc = work + cost2go[row + 1][col - 2]
+        #    else:
+        #        workc = work + d_max
         elif move == "z":
-            if (row + 1 < m and col + 2 < n) and \
-                   (row + 1 < m) and (col + 1 < n) and \
-                   (row + 1 < m and col + 1 < n):
-                workc = work + cost2go[row + 1][col + 2]
-            else:
-                workc = work + d_max
+        #    if (row + 1 < m and col + 2 < n) and \
+        #           (row + 1 < m) and (col + 1 < n) and \
+        #           (row + 1 < m and col + 1 < n):
+             workc = work + cost2go[row + 1][col + 2]
+        #    else:
+        #        workc = work + d_max
         elif move == "*":
                 workc = d_max
 
@@ -288,7 +285,7 @@ def getOutcome(move, us, vs, weights, traveler,
 
     return workc, work
 
-def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, env, cost2go = None):
+def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, env, D_max, cost2go = None):
     world_actionspace = getWorldActionsForCell(row, col, ugrids, vgrids, errors)
 
     game = [[0 for wa in range(world_actionspace["num"])] for ta in traveler["actionspace"]]
@@ -306,22 +303,12 @@ def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, env, cos
             if Bvalid:
                 game[r][c], game_work[r][c] = getOutcome(traveler["actionspace"][r],
                         world_actionspace["uactions"][c], world_actionspace["vactions"][c],
-                        weights, traveler, cost2go, row, col)
+                        weights, traveler, D_max, cost2go, row, col)
             else: # If invalid move, do not bother with work
-                game[r][c], game_work[r][c] = 100000000000, 100000000000
+                game[r][c], game_work[r][c] = D_max, D_max
 
     game      = np.array(game)
     game_work = np.array(game_work)
-
-    #R = [201, 333, 466, 599]
-    #C = [201, 333, 466, 599]
-    #if row in R and col in C:
-    #    np.savetxt("test/games/game_4way_res50_scale100_" + str(row) + "-" + str(col) + ".txt", game)
-
-    #if (row + 1, col) == traveler["target"]:
-    #    print(game)
-    #    exit()
-
     return game, game_work
 
 
@@ -464,7 +451,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
     # Maximum distance between neighbors
     d_max = sqrt(2) * 10 # Put 1000 but unsure max work
     # Maximum cost
-    D_max = M * d_max  # D_max must be > (M - 1) * d_max
+    D_max = M * d_max * 100000000000 * 10000000000  # D_max must be > (M - 1) * d_max
 
     if iterations == None:
         iterations = M
@@ -494,7 +481,8 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
         errors = [e[row][col] for e in egrids]
         weights = [w[row][col] for w in wgrids]
         g, g_work = getGameForCell(i[0], i[1], traveler, ugrids, vgrids,
-                                             errors, weights, env, cost2go)
+                                             errors, weights, env, D_max, cost2go)
+
         solution             = solveGame(g, method)
         #cost2go[row][col]    = solution[4]
         #work2go[row][col]    = g_work[solution[2], solution[3]]
@@ -516,19 +504,30 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
         elif occgrid[i[0]][i[1]] == 1:
             cost = D_max
 
+        # Check if surrounded by D_max
+        elif    cost2go[i[0] - 1][i[1]] == D_max and cost2go[i[0] - 1][i[1] - 1] == D_max and \
+                cost2go[i[0] - 1][i[1]] == D_max and cost2go[i[0] - 1][i[1] + 1] == D_max and \
+                cost2go[i[0]][i[1] - 1] == D_max and cost2go[i[0] + 1][i[1] - 1] == D_max and \
+                cost2go[i[0]][i[1] + 1] == D_max and cost2go[i[0] + 1][i[1] + 1] == D_max:
+            cost = D_max
+            action = "-"
+
         # Else, calculate cost normally
         else:
             #c, b = f(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max)
-
             c, b = f_work(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max,
                     occgrid, traveler, ugrids, vgrids, egrids, wgrids, 0)
+
             if c >= D_max:
                 cost = D_max
                 action = '-'
             else:
                 cost = c
                 action = b
-            #print(action, cost, D_max)
+
+            if i == (465, 349):
+                print ("self:", cost2go[465][349], "obs:", cost2go[467][350])
+
         return cost, action
 
     cost2go = np.zeros((full_m, full_n)) + D_max
@@ -547,104 +546,104 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
     return cost2go, work2go, action2go, history
 
-def getCost2go__OLD(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None, verbose = False, iterations = 1, method = 0):
-
-    def haltCost(row, col, target_row, target_col):
-
-        # INF cost if not halting at target
-        if  row != target_row or \
-            col != target_col:
-                return np.inf
-        else: # No cost to halt at target
-            return 0
-
-
-    def floodAssignCost(row, col, occgrid, ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler, bounds = None, method = 0):
-
-        if bounds["upperleft"] == None or bounds["lowerright"] == None:
-            bounds = { "upperleft"  : (0, 0),
-                       "lowerright" : (occgrid.shape[0], occgrid.shape[1]),
-                     }
-
-        stack = set(((row, col),))
-
-        visitedgrid = np.zeros(occgrid.shape)
-
-        while stack:
-            row, col = stack.pop()
-            errors  = [e[row][col] for e in egrids]
-            weights = [w[row][col] for w in wgrids]
-
-            # If not obstacle..
-            if occgrid[row][col] == 0:
-                # Assign
-                if row == traveler["target"][0] and \
-                   col == traveler["target"][1]:
-                    cost2go[row][col]    = 0
-                    actiongrid[row][col] = "*"
-                else:
-                    g, g_work = getGameForCell(row, col, traveler, ugrids, vgrids,
-                                                         errors, weights, cost2go)
-                    solution             = solveGame(g, method)
-                    cost2go[row][col]    = solution[4]
-                    work2go[row][col]    = g_work[solution[2], solution[3]]
-                    actiongrid[row][col] = traveler["actionspace"][solution[2]]
-                visitedgrid[row][col] = 1
-
-                if row > bounds["upperleft"][0]:
-                    if visitedgrid[row - 1][col] == 0:
-                       stack.add((row - 1, col))
-                if row < bounds["lowerright"][0]:
-                    if visitedgrid[row + 1][col] == 0:
-                        stack.add((row + 1, col))
-                if col > bounds["upperleft"][1]:
-                    if visitedgrid[row][col - 1] == 0:
-                        stack.add((row, col - 1))
-                if col < bounds["lowerright"][1]:
-                    if visitedgrid[row][col + 1] == 0:
-                        stack.add((row, col + 1))
-
-    m, n = occgrid.shape
-
-    cost2go = np.zeros(occgrid.shape) + 100000000000
-    work2go = np.zeros(occgrid.shape)
-    actiongrid = np.array([[" " for col in range(n)] for row in range(m)])
-    for row in range(len(occgrid)):
-        for col in range(len(occgrid[0])):
-            if occgrid[row][col] == 1:
-                actiongrid[row][col] = '-'
-    history = [{"statPath" : None, "statChange" : None} for i in range(iterations)]
-
-    cost2go_prev = np.array(cost2go)
-
-    for i in range(iterations):
-        floodAssignCost(traveler["target"][0], traveler["target"][1], occgrid,
-            ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler,
-            bounds = bounds, method = method)
-
-        # Calc change in cost2go
-        cost2go_diff = np.abs(cost2go - cost2go_prev)
-        avg          = np.mean(cost2go)
-        avg_diff     = np.mean(cost2go_diff)
-        cost2go_prev = np.array(cost2go)
-
-        # Follow path using cost2go
-        trace, waypoints = travel_tools.followPath(traveler["start"], actiongrid)
-        stat = travel_tools.statPath(trace, waypoints, cost2go, work2go)
-
-        history[i]["statPath"]   = stat
-        history[i]["statChange"] = {"avg" : avg, "avg_diff" : avg_diff}
-
-        if verbose == True:
-            print("iteration: " + str(i + 1) + " / " + str(iterations))
-            print("  Avg cost2go: %f" % (avg))
-            print("  Avg cost2go change: %f" % (avg_diff))
-            print("  Path: (%d, %d) -> (%d, %d)" % \
-                 (traveler["start"][0],  traveler["start"][1],
-                 traveler["target"][0], traveler["target"][1]))
-            travel_tools.printStatPath(stat, copious = False)
-
-    return cost2go, work2go, actiongrid, history
+###def getCost2go__OLD(traveler, occgrid, ugrids, vgrids, egrids, wgrids, bounds = None, verbose = False, iterations = 1, method = 0):
+###
+###    def haltCost(row, col, target_row, target_col):
+###
+###        # INF cost if not halting at target
+###        if  row != target_row or \
+###            col != target_col:
+###                return np.inf
+###        else: # No cost to halt at target
+###            return 0
+###
+###
+###    def floodAssignCost(row, col, occgrid, ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler, bounds = None, method = 0):
+###
+###        if bounds["upperleft"] == None or bounds["lowerright"] == None:
+###            bounds = { "upperleft"  : (0, 0),
+###                       "lowerright" : (occgrid.shape[0], occgrid.shape[1]),
+###                     }
+###
+###        stack = set(((row, col),))
+###
+###        visitedgrid = np.zeros(occgrid.shape)
+###
+###        while stack:
+###            row, col = stack.pop()
+###            errors  = [e[row][col] for e in egrids]
+###            weights = [w[row][col] for w in wgrids]
+###
+###            # If not obstacle..
+###            if occgrid[row][col] == 0:
+###                # Assign
+###                if row == traveler["target"][0] and \
+###                   col == traveler["target"][1]:
+###                    cost2go[row][col]    = 0
+###                    actiongrid[row][col] = "*"
+###                else:
+###                    g, g_work = getGameForCell(row, col, traveler, ugrids, vgrids,
+###                                                         errors, weights, cost2go)
+###                    solution             = solveGame(g, method)
+###                    cost2go[row][col]    = solution[4]
+###                    work2go[row][col]    = g_work[solution[2], solution[3]]
+###                    actiongrid[row][col] = traveler["actionspace"][solution[2]]
+###                visitedgrid[row][col] = 1
+###
+###                if row > bounds["upperleft"][0]:
+###                    if visitedgrid[row - 1][col] == 0:
+###                       stack.add((row - 1, col))
+###                if row < bounds["lowerright"][0]:
+###                    if visitedgrid[row + 1][col] == 0:
+###                        stack.add((row + 1, col))
+###                if col > bounds["upperleft"][1]:
+###                    if visitedgrid[row][col - 1] == 0:
+###                        stack.add((row, col - 1))
+###                if col < bounds["lowerright"][1]:
+###                    if visitedgrid[row][col + 1] == 0:
+###                        stack.add((row, col + 1))
+###
+###    m, n = occgrid.shape
+###
+###    cost2go = np.zeros(occgrid.shape) + 100000000000
+###    work2go = np.zeros(occgrid.shape)
+###    actiongrid = np.array([[" " for col in range(n)] for row in range(m)])
+###    for row in range(len(occgrid)):
+###        for col in range(len(occgrid[0])):
+###            if occgrid[row][col] == 1:
+###                actiongrid[row][col] = '-'
+###    history = [{"statPath" : None, "statChange" : None} for i in range(iterations)]
+###
+###    cost2go_prev = np.array(cost2go)
+###
+###    for i in range(iterations):
+###        floodAssignCost(traveler["target"][0], traveler["target"][1], occgrid,
+###            ugrids, vgrids, egrids, wgrids, cost2go, work2go, actiongrid, traveler,
+###            bounds = bounds, method = method)
+###
+###        # Calc change in cost2go
+###        cost2go_diff = np.abs(cost2go - cost2go_prev)
+###        avg          = np.mean(cost2go)
+###        avg_diff     = np.mean(cost2go_diff)
+###        cost2go_prev = np.array(cost2go)
+###
+###        # Follow path using cost2go
+###        trace, waypoints = travel_tools.followPath(traveler["start"], actiongrid)
+###        stat = travel_tools.statPath(trace, waypoints, cost2go, work2go)
+###
+###        history[i]["statPath"]   = stat
+###        history[i]["statChange"] = {"avg" : avg, "avg_diff" : avg_diff}
+###
+###        if verbose == True:
+###            print("iteration: " + str(i + 1) + " / " + str(iterations))
+###            print("  Avg cost2go: %f" % (avg))
+###            print("  Avg cost2go change: %f" % (avg_diff))
+###            print("  Path: (%d, %d) -> (%d, %d)" % \
+###                 (traveler["start"][0],  traveler["start"][1],
+###                 traveler["target"][0], traveler["target"][1]))
+###            travel_tools.printStatPath(stat, copious = False)
+###
+###    return cost2go, work2go, actiongrid, history
 
 def writeActiongrid(actiongrid, actionfile, bounds = None):
     numrows = len(actiongrid)
