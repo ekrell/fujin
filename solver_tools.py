@@ -514,19 +514,14 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
         # Else, calculate cost normally
         else:
-            #c, b = f(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max)
             c, b = f_work(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max,
                     occgrid, traveler, ugrids, vgrids, egrids, wgrids, 0)
-
             if c >= D_max:
                 cost = D_max
                 action = '-'
             else:
                 cost = c
                 action = b
-
-            if i == (465, 349):
-                print ("self:", cost2go[465][349], "obs:", cost2go[467][350])
 
         return cost, action
 
@@ -536,12 +531,35 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
     history = None
 
     for k in range(iterations):
-        for row in range(bounds["upperleft"][0], bounds["lowerright"][0]):
-            for col in range(bounds["upperleft"][1], bounds["lowerright"][1]):
-                i = (row, col)
+
+        visitQueue = [G]
+        visitHistory = []
+
+        #for row in range(bounds["upperleft"][0], bounds["lowerright"][0]):
+        #    for col in range(bounds["upperleft"][1], bounds["lowerright"][1]):
+
+        count = 0
+        while visitQueue and count < 100000:
+                count = count + 1
+                i = visitQueue.pop(0)
+                #i = (row, col)
+
+                # Assign cost2go at i
                 cost2go[i[0]][i[1]], action2go[i[0]][i[1]] = \
                     getNewCost(i, G, occgrid, m, n, cost2go, D_max,
                             traveler, ugrids, vgrids, egrids, wgrids)
+
+                # Add i's neighbors to list
+                B = getNeighbors(i, occgrid.shape[0], occgrid.shape[1], occgrid)
+                for b in B:
+                    b = (b[0], b[1])
+
+                    if     b[0] > bounds["upperleft"][0] and b[0] < bounds["lowerright"][0] and \
+                           b[1] > bounds["upperleft"][1] and b[1] < bounds["lowerright"][1]:
+                        if b not in visitHistory:
+                            visitQueue.append(b)
+                            visitHistory.append(b)
+
         print("Iteration: " + str(k) + "/" + str(iterations))
 
     return cost2go, work2go, action2go, history
