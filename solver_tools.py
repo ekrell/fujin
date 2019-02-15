@@ -293,28 +293,18 @@ def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, env, D_m
 
     B = getNeighbors((row, col), env.shape[0], env.shape[1], env)
     Bmove = [b[2] for b in B]
-    if(row == 532 and col == 327):
-        print(Bmove)
 
     for r in range(len(game)):
         Bvalid = False
-        #print(Bmove, traveler["actionspace"][r])
         if traveler["actionspace"][r] in Bmove:
             Bvalid = True
         for c in range(len(game[0])):
             if Bvalid:
-                if(row == 532 and col == 327):
-                    print(traveler["actionspace"][r])
                 game[r][c], game_work[r][c] = getOutcome(traveler["actionspace"][r],
                         world_actionspace["uactions"][c], world_actionspace["vactions"][c],
                         weights, traveler, D_max, cost2go, row, col)
             else: # If invalid move, do not bother with work
                 game[r][c], game_work[r][c] = D_max, D_max
-
-
-    if(row == 532 and col == 327):
-        for rr in range(len(game)):
-            print (rr, game[rr])
 
     game      = np.array(game)
     game_work = np.array(game_work)
@@ -493,10 +483,6 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
                                              errors, weights, env, D_max, cost2go)
 
         solution             = solveGame(g, method)
-
-
-        if(i[0] == 532 and i[1] == 327):
-            print(solution, traveler["actionspace"][solution[2]])
 
         #cost2go[row][col]    = solution[4]
         #work2go[row][col]    = g_work[solution[2], solution[3]]
