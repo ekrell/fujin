@@ -125,7 +125,6 @@ def parseOptions():
         (options, args, settings) = None, None, None
         return (options, args, settings)
 
-
     # Esnure that all lists related to the vectors are of same length
     if settings["ucomponents"] is not None or settings["vcomponents"] is not None:
        try:
@@ -157,10 +156,10 @@ def parseOptions():
     settings["verbose"] = options.verbose
     settings["reuse"]   = options.reuse
 
-
     # Boundaries
     if options.bounds is not None:
         bounds = [int(s) for s in options.bounds.split(",")]
+        print(bounds)
         settings["bounds"]["upperleft"]  = (bounds[0], bounds[1])
         settings["bounds"]["lowerright"] = (bounds[2], bounds[3])
         if settings["start"][0]  <  settings["bounds"]["upperleft"][0]  or \
@@ -173,9 +172,6 @@ def parseOptions():
            settings["target"][1] >= settings["bounds"]["lowerright"][1]:
             (options, args, settings) = None, None, None
             return (options, args, settings)
-
-
-
 
 
     return (options, args, settings)
@@ -270,6 +266,12 @@ def getOccupancyGrid(occupancyImageFiles):
     occgrid = None
     name, ext = splitext(occupancyImageFiles[0])
 
+    if ext == ".txt":
+        grids = [np.loadtxt(f, dtype = int, delimiter = ",") for f in occupancyImageFiles]
+        occgrid = np.zeros((grids[0].shape[0], grids[0].shape[1]), dtype = int)
+        for g in grids:
+            occgrid = occgrid + g
+
     if ext == ".png":
         grids = [np.asarray(Image.open(f)) for f in occupancyImageFiles]
         occgrid = np.zeros((grids[0].shape[0], grids[0].shape[1]))
@@ -296,6 +298,10 @@ def getComponentGrid(componentImageFile, band = 1):
 
     compgrid = None
     name, ext = splitext(componentImageFile)
+
+    #if ext == ".txt":
+    #    compgrid = np.loadtxt(componentImageFile)
+    #    print(compgrid)
 
     if ext == ".png":
         # Creates 2D numpy array where the grayscale

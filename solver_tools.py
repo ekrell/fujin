@@ -6,7 +6,6 @@ import time
 
 def getNeighbors(i, m, n, env, obstacleFlag = 1):
 
-
     B = []
 
     upAllowed        = False
@@ -90,6 +89,7 @@ def getNeighbors(i, m, n, env, obstacleFlag = 1):
     if(i[0] + 1 < m and i[1] + 2 < n and downAllowed and downrightAllowed and rightAllowed):
         if(env[i[0] + 1][i[1] + 2] != obstacleFlag):
             B.append((i[0] + 1, i[1] + 2, "z"))
+
     return B
 
 
@@ -158,7 +158,6 @@ def uv2magdir(u, v):
 def getOutcome(move, us, vs, weights, traveler, D_max,
         cost2go = None, row = None, col = None):
 
-
     # Get resultant vector of all weighted world sources
     uw, vw = getVectorSum(us, vs, weights)
 
@@ -171,8 +170,19 @@ def getOutcome(move, us, vs, weights, traveler, D_max,
     # Combine applied u, v to get mag, dir
     maga, dira = uv2magdir(ua, va)
 
+
+    # distance
+    distance = 0
+    if move == "^" or move == "v" or move == "<" or move == ">":
+        distance = 1
+    if move == "a" or move == "b" or move == "c" or move == "d":
+        distance = 1.41421
+    if move == "m" or move == "n" or move == "o" or move == "p" or \
+       move == "w" or move == "x" or move == "y" or move == "z":
+        distance = 2.236
+
     # Calculate work
-    work = maga  # Proportional to magnitude the speed is 'per cell'
+    work = maga * distance
     workc = work
     # Dynamic programming: include cost2go
     if cost2go is not None and row is not None and col is not None:
@@ -434,15 +444,20 @@ def printSolution(solution, name = ""):
 
 
 def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
-        bounds = None, verbose = False, iterations = None, method = 0):
+        bounds = None, verbose = False, iterations = None, method = 0, style = "fast"):
+
+    if bounds["upperleft"] is None:
+        bounds["upperleft"] = (0, 0)
+    if bounds["lowerright"] is None:
+        bounds["lowerright"] = (occgrid.shape[0] - 1, occgrid.shape[1] - 1)
 
     # Destination position
     G = (traveler["target"][0], traveler["target"][1])
 
     # Environment size
     full_m, full_n = occgrid.shape
-    m = abs(bounds["lowerright"][0] - bounds["upperleft"][0])
-    n = abs(bounds["lowerright"][1] - bounds["upperleft"][1])
+    m = abs(bounds["lowerright"][0] - bounds["upperleft"][0]) + 1
+    n = abs(bounds["lowerright"][1] - bounds["upperleft"][1]) + 1
     M = m * n # Num cells
 
     # Minimum distance between neighbors
@@ -450,7 +465,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
     # Maximum distance between neighbors
     d_max = sqrt(2) * 10 # Put 1000 but unsure max work
     # Maximum cost
-    D_max = M * d_max * 100000000000 * 10000000000  # D_max must be > (M - 1) * d_max
+    D_max = M * d_max# * 100000000000 # D_max must be > (M - 1) * d_max
 
     if iterations == None:
         iterations = M
@@ -487,34 +502,34 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
         #cost2go[row][col]    = solution[4]
         #work2go[row][col]    = g_work[solution[2], solution[3]]
         #actiongrid[row][col] = traveler["actionspace"][solution[2]]
-        return (solution[4], traveler["actionspace"][solution[2]])
+        return (solution[4], traveler["actionspace"][solution[2]], g_work[solution[2], solution[3]])
 
 
     def getNewCost(i, G, occgrid, m, n, cost2go, D_max,
             traveler, ugrids, vgrids, egrids, wgrids):
+
         cost = D_max
         action = " "
+        work = D_max
+
+        calcCost = True
 
         # Check if target location
         if i == G:
             cost = 0
+            work = 0
             action = "*"
-
+            calcCost = False
         # Check if obstacle
         elif occgrid[i[0]][i[1]] == 1:
             cost = D_max
-
-        # Check if surrounded by D_max
-        elif    cost2go[i[0] - 1][i[1]] == D_max and cost2go[i[0] - 1][i[1] - 1] == D_max and \
-                cost2go[i[0] - 1][i[1]] == D_max and cost2go[i[0] - 1][i[1] + 1] == D_max and \
-                cost2go[i[0]][i[1] - 1] == D_max and cost2go[i[0] + 1][i[1] - 1] == D_max and \
-                cost2go[i[0]][i[1] + 1] == D_max and cost2go[i[0] + 1][i[1] + 1] == D_max:
-            cost = D_max
-            action = "-"
+            work = D_max
+            action = " "
+            calcCost = False
 
         # Else, calculate cost normally
-        else:
-            c, b = f_work(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max,
+        if calcCost:
+            c, b, w = f_work(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max,
                     occgrid, traveler, ugrids, vgrids, egrids, wgrids, 0)
             if c >= D_max:
                 cost = D_max
@@ -523,50 +538,66 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
                 cost = c
                 action = b
 
-        return cost, action
+        return cost, action, work
 
     cost2go = np.zeros((full_m, full_n)) + D_max
     work2go = np.zeros((full_m, full_n))
     action2go = np.array([["-" for col in range(full_n)] for row in range(full_m)])
-    history = None
+    history = [{"statPath" : None, "statChange" : None} for i in range(iterations)]
+
+    # Save a copy of current cost2go as 'prev' to compare to next iter's version
+    cost2go_prev = np.array(cost2go)
 
     for k in range(iterations):
 
-        # Queue of locations to evaluate
-        visitQueue = [G]
-        # Queue history
-        visitHistory = set()
-        # Bound on number of locations can solve per iteration
-        maxCount = 100000;
-        # Loop counter
-        count = 0
+        if style == "fast":
+            # Queue of locations to evaluate
+            visitQueue = [G]
+            # Queue history
+            visitHistory = set()
+            # Bottoms-up visit of all possible locations
+            while visitQueue:
+                    i = visitQueue.pop(0)
+                    # Assign cost2go at i
+                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]], work2go[i[0]][i[1]] = \
+                        getNewCost(i, G, occgrid, m, n, cost2go, D_max,
+                                traveler, ugrids, vgrids, egrids, wgrids)
+                    # Add i's neighbors to list
+                    B = getNeighbors(i, occgrid.shape[0], occgrid.shape[1], occgrid)
+                    for b in B:
+                        b = (b[0], b[1])
+                        if     b[0] >= bounds["upperleft"][0] and b[0] <= bounds["lowerright"][0] and \
+                               b[1] >= bounds["upperleft"][1] and b[1] <= bounds["lowerright"][1]:
+                            if b not in visitHistory:
+                                visitQueue.append(b)
+                                visitHistory.add(b)
+        elif style == "slow":
+            for row in range(bounds["upperleft"][0], bounds["lowerright"][0]):
+                for col in range(bounds["upperleft"][1], bounds["lowerright"][1]):
+                    i = (row, col)
+                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]], work2go[i[0]][i[1]] = \
+                        getNewCost(i, G, occgrid, m, n, cost2go, D_max,
+                                traveler, ugrids, vgrids, egrids, wgrids)
 
-        import time
-        while visitQueue: # and count < maxCount:
-                #t0outer = time.time()
-                count = count + 1
-                #print (count)
-                i = visitQueue.pop(0)
-                # Assign cost2go at i
-                #t0inner = time.time()
-                cost2go[i[0]][i[1]], action2go[i[0]][i[1]] = \
-                    getNewCost(i, G, occgrid, m, n, cost2go, D_max,
-                            traveler, ugrids, vgrids, egrids, wgrids)
-                #t1inner = time.time()
-                # Add i's neighbors to list
-                B = getNeighbors(i, occgrid.shape[0], occgrid.shape[1], occgrid)
-                for b in B:
-                    b = (b[0], b[1])
-
-                    if     b[0] > bounds["upperleft"][0] and b[0] < bounds["lowerright"][0] and \
-                           b[1] > bounds["upperleft"][1] and b[1] < bounds["lowerright"][1]:
-                        if b not in visitHistory:
-                            visitQueue.append(b)
-                            visitHistory.add(b)
-                #t1outer = time.time()
-                #print("Full time", t1outer - t0outer, "new cost time", t1inner - t0inner)
-
-        print("Iteration: " + str(k) + "/" + str(iterations))
+        # Calc iteration stats
+        cost2go_diff = np.abs(cost2go - cost2go_prev)
+        avg = np.mean(cost2go)
+        avg_diff = np.mean(cost2go_diff)
+        cost2go_prev = np.array(cost2go)
+        # Follow path using cost2go
+        trace, waypoints = travel_tools.followPath(traveler["start"], action2go)
+        stat = travel_tools.statPath(trace, waypoints, cost2go, work2go)
+        history[k]["statPath"] = stat
+        history[k]["statChange"] = {"avg" : avg, "avg_diff" : avg_diff}
+        # Print iteration info
+        if verbose:
+            print("Iteration: " + str(k + 1) + "/" + str(iterations))
+            print("  Avg cost2go: %f" % (avg))
+            print("  Avg cost2go change: %f" % (avg_diff))
+            print("  Path: (%d, %d) -> (%d, %d)" % \
+                    (traveler["start"][0],  traveler["start"][1],
+                     traveler["target"][0], traveler["target"][1]))
+            travel_tools.printStatPath(stat, copious = False)
 
     return cost2go, work2go, action2go, history
 
@@ -578,7 +609,6 @@ def writeActiongrid(actiongrid, actionfile, bounds = None):
         bounds = { "upperleft"  : (0, 0),
                    "lowerright" : (actiongrid.shape[0], actiongrid.shape[1]),
                  }
-
     af = open(actionfile, 'w')
     for row in range(numrows):
         for col in range(numcols):

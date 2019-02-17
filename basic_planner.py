@@ -56,10 +56,6 @@ def main():
             with open(settings["files"]["pickle"], 'rb') as handle:
                 history = pickle.load(handle)
 
-    ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DEBUG
-    exit()
-    ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
     ###############
     # Path Follow #
     ###############
