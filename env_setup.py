@@ -296,6 +296,8 @@ def getOccupancyGrid(occupancyImageFiles):
 
 def getComponentGrid(componentImageFile, band = 1):
 
+    print (componentImageFile)
+
     compgrid = None
     name, ext = splitext(componentImageFile)
 
@@ -336,7 +338,7 @@ def getVectorGrids(ucomponentImageFiles, vcomponentImageFiles, occgrid):
 
         for i in range(numGrids):
             ugrids[i] = getComponentGrid(ucomponentImageFiles[i])
-            vgrids[i] = getComponentGrid(ucomponentImageFiles[i])
+            vgrids[i] = getComponentGrid(vcomponentImageFiles[i])
     return ugrids, vgrids
 
 

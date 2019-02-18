@@ -89,7 +89,6 @@ def getNeighbors(i, m, n, env, obstacleFlag = 1):
     if(i[0] + 1 < m and i[1] + 2 < n and downAllowed and downrightAllowed and rightAllowed):
         if(env[i[0] + 1][i[1] + 2] != obstacleFlag):
             B.append((i[0] + 1, i[1] + 2, "z"))
-
     return B
 
 
@@ -111,7 +110,7 @@ def getWorldActionsForCell(row, col, ugrids, vgrids, errors):
     vactionspace = list(itertools.product(*vranges))
 
     world_actionspace = { "uactions"   : uactionspace,
-                          "vactions"   : uactionspace,
+                          "vactions"   : vactionspace,
                           "num"        : numActions,
                         }
 
@@ -296,6 +295,7 @@ def getOutcome(move, us, vs, weights, traveler, D_max,
     return workc, work
 
 def getGameForCell(row, col, traveler, ugrids, vgrids, errors, weights, env, D_max, cost2go = None):
+
     world_actionspace = getWorldActionsForCell(row, col, ugrids, vgrids, errors)
 
     game = [[0 for wa in range(world_actionspace["num"])] for ta in traveler["actionspace"]]
@@ -507,7 +507,6 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
     def getNewCost(i, G, occgrid, m, n, cost2go, D_max,
             traveler, ugrids, vgrids, egrids, wgrids):
-
         cost = D_max
         action = " "
         work = D_max

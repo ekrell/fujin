@@ -96,7 +96,7 @@ def plotPath(trace, waypoints, occupancyRasterFile, occupancyGrid, plotsfile = N
 
     return ax
 
-def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10, init = True, sampleInterval = 10):
+def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10, init = True, sampleInterval = 1):
 
     plt.close("all")
 
@@ -159,7 +159,7 @@ def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = N
 
 
 def plotActions(actiongrid, action2radians, occupancyRasterFile, occupancyGrid, plotsfile = None,
-                width = 10, init = True, sampleInterval = 10, magnitude = 1):
+                width = 10, init = True, sampleInterval = 1, magnitude = 10):
 
     def action2uv(action, magnitude, action2radians):
         if action == '*' or action == '-' or action == ' ':

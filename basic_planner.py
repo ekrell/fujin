@@ -26,7 +26,6 @@ def main():
                               settings["weightgrids"], len(ugrids))
     egrids  = env_setup.getErrorGrids (occgrid, settings["errors"],
                                settings["errorgrids"], len(ugrids))
-
     ############
     # Planning #
     ############
