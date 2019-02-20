@@ -132,8 +132,10 @@ def getVectorSum(us, vs, weights):
 
 
 def getVectorDiff(us, vs, weights):
-    utotal = 0
-    vtotal = 0
+    utotal = us[0]
+    vtotal = vs[0]
+    us.pop(0)
+    vs.pop(0)
 
     numVectors = len(us)
 
@@ -168,7 +170,13 @@ def getOutcome(move, us, vs, weights, traveler, D_max,
 
     # Combine applied u, v to get mag, dir
     maga, dira = uv2magdir(ua, va)
-
+    #if (row, col) == (0,0):
+    #    print("---")
+    #    print (uw, vw)
+    #    print (ut, vt)
+    #    print(ua, va)
+    #    print(maga, dira)
+    #    exit()
 
     # distance
     distance = 0
@@ -182,6 +190,7 @@ def getOutcome(move, us, vs, weights, traveler, D_max,
 
     # Calculate work
     work = maga * distance
+    #work = distance * ua + distance * va
     workc = work
     # Dynamic programming: include cost2go
     if cost2go is not None and row is not None and col is not None:

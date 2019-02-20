@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 from matplotlib.colors      import ListedColormap, BoundaryNorm
 import matplotlib.patches as patches
+import matplotlib.cm as cm
 from math import cos, sin
 
-def plotPathStatHistory(history_df, plotsfile, dpi = 300):
+def plotPathStatHistory(history_df, plotsfile, dpi = 100):
     # history_df : dataframe of pathStat history
     plt.plot(history_df.index.values, history_df["work"], 'p')
     plt.ylabel("Work")
@@ -64,10 +65,12 @@ def plotRegion(occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10)
         resolution = 'h')
     image = georaster.SingleBandRaster(occ_raster,
         load_data=(minx, maxx, miny, maxy), latlon=True)
-    ax.imshow(image.r, extent=(0, cols, 0, rows), zorder=10, alpha=0.6)
+    ax.imshow(image.r, extent=(0, cols, 0, rows), zorder=0, alpha=1, cmap=cm.Paired)
+
 
     if plotsfile is not None:
-        plt.savefig(plotsfile + "_region.eps", bbox_inches = "tight", format = "eps", dpi = 300)
+        #plt.savefig(plotsfile + "_region.eps", bbox_inches = "tight", format = "eps", dpi = 300)
+        plt.savefig(plotsfile + "_region.eps", bbox_inches = -2, format = "eps", dpi = 100)
 
     return ax
 
@@ -78,9 +81,9 @@ def plotPath(trace, waypoints, occupancyRasterFile, occupancyGrid, plotsfile = N
         xpoints = [w[1] + 0.5 for w in waypoints]
         plt.plot(xpoints, ypoints, 'x--')
         plt.scatter([trace[0][1] + 0.5], [occupancyGrid.shape[0] - trace[0][0] - 0.5],
-                                 s = 250, marker = "8", color = "#ec73c9")
+                                 s = 550, marker = "D", color = "#ec73c9")
         plt.scatter([trace[len(trace) - 1][1] + 0.5], [occupancyGrid.shape[0] - trace[len(trace) - 1][0] - 0.5],
-                                                          s = 250, marker = "8", color = "seagreen")
+                                                          s = 550, marker = "o", color = "seagreen")
         return plt.gca()
 
     if init == True:
@@ -90,13 +93,12 @@ def plotPath(trace, waypoints, occupancyRasterFile, occupancyGrid, plotsfile = N
     plt.ylim(auto=False)
     ax = plotit(trace, waypoints)
 
-    ax.set_rasterized(True)
     if plotsfile is not None:
-        plt.savefig(plotsfile + "_path.eps", bbox_inches = "tight", format = "eps", dpi = 300)
+        plt.savefig(plotsfile + "_path.eps", bbox_inches = "tight", format = "eps", dpi = 100)
 
     return ax
 
-def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10, init = True, sampleInterval = 1):
+def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10, init = True, sampleInterval = 1, color = "black"):
 
     plt.close("all")
 
@@ -136,23 +138,20 @@ def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = N
         else:
             vsamples_sum = vsamples_sum + vsamples
 
-        ysamples = [rows - y for y in ysamples]
-        plt.quiver(xsamples[::], ysamples[::], usamples[::], vsamples[::])
+        #ysamples = [rows - y for y in ysamples]
+        plt.quiver(xsamples[::], ysamples[::], usamples[::], vsamples[::], color = color)
 
-        ax.set_rasterized(True)
         if plotsfile is not None:
-            plt.savefig(plotsfile + "_environment_" + str(i) + ".eps", bbox_inches = "tight", format = "eps", dpi = 300)
+            plt.savefig(plotsfile + "_environment_" + str(i) + ".eps", bbox_inches = "tight", format = "eps", dpi = 100)
 
     plt.clf()
     ax = plotRegion(occupancyRasterFile, occupancyGrid)
     plt.xlim(auto=False)
     plt.ylim(auto=False)
-    ysamples = [rows - y for y in ysamples]
-    plt.quiver(xsamples[::], ysamples[::], usamples_sum[::], vsamples_sum[::])
+    plt.quiver(xsamples[::], ysamples[::], usamples_sum[::], vsamples_sum[::], color = color)
 
-    ax.set_rasterized(True)
     if plotsfile is not None:
-        plt.savefig(plotsfile + "_environment" + ".eps", bbox_inches = "tight", format = "eps", dpi = 300)
+        plt.savefig(plotsfile + "_environment" + ".eps", bbox_inches = "tight", format = "eps", dpi = 100)
 
     return ax
 
@@ -195,9 +194,8 @@ def plotActions(actiongrid, action2radians, occupancyRasterFile, occupancyGrid, 
     ysamples = [rows - y for y in ysamples]
     plt.quiver(xsamples[::], ysamples[::], usamples[::], vsamples[::], scale=20, scale_units='inches')
 
-    ax.set_rasterized(True)
     if plotsfile is not None:
-        plt.savefig(plotsfile + "_actions" + ".png", bbox_inches = "tight", format = "png", dpi = 300)
+        plt.savefig(plotsfile + "_actions" + ".png", bbox_inches = "tight", format = "png", dpi = 100)
 
     return ax
 

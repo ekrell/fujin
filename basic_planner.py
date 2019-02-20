@@ -13,7 +13,7 @@ def main():
     # Setup #
     #########
     history = None
-    speed_cps = 10 # 10 cells per second
+    speed_cps = 100 # 10 cells per second
     options, args, settings = env_setup.parseOptions()
 
     print(settings)
@@ -101,7 +101,8 @@ def main():
         ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0],
                                           occgrid, settings["files"]["plots"])
         ax = visual_tools.plotVector(ugrids, vgrids, settings["occupancy"][0],
-                                          occgrid, settings["files"]["plots"])
+                                          occgrid, settings["files"]["plots"],
+                                          color = "white")
 
     if actiongrid is not None:
         visual_tools.plotActions(actiongrid, traveler["action2radians"], settings["occupancy"][0],
