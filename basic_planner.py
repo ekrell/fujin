@@ -13,12 +13,11 @@ def main():
     # Setup #
     #########
     history = None
-    speed_cps = 100 # 10 cells per second
     options, args, settings = env_setup.parseOptions()
 
     print(settings)
 
-    traveler = env_setup.getTraveler(settings["start"], settings["target"], speed_cps, "16way")
+    traveler = env_setup.getTraveler(settings["start"], settings["target"], settings["speed"], "16way")
     env_setup.printEnv(settings)
     occgrid = env_setup.getOccupancyGrid(settings["occupancy"])
     ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"], settings["vcomponents"], occgrid)
@@ -31,7 +30,7 @@ def main():
     ############
     if settings["reuse"] == False:
         # Assign costs -> generate cost2go
-        cost2go, work2go, actiongrid, history = solver_tools.getCost2go(traveler,
+        cost2go, work2go, actiongrid, uenvgrid, venvgrid, history = solver_tools.getCost2go(traveler,
           occgrid, ugrids, vgrids, egrids, wgrids,
           bounds = settings["bounds"], verbose =  settings["verbose"],
           iterations = settings["iterations"])
@@ -39,6 +38,9 @@ def main():
         np.savetxt(settings["files"]["cost2go"], cost2go)
         # Save work2go
         np.savetxt(settings["files"]["work2go"], work2go)
+        # Save envgrid
+        ###np.savetxt(settings["files"]["uenvgrid"], uenvgrid)
+        ###np.savetxt(settings["files"]["venvgrid"], venvgrid)
         # Save actiongrid
         solver_tools.writeActiongrid(actiongrid, settings["files"]["actiongrid"])
         # Save convergence history
@@ -100,10 +102,12 @@ def main():
         visual_tools.plotPathStatHistory(history_df, settings["files"]["plots"])
         ax = visual_tools.plotPath(trace, waypoints, settings["occupancy"][0],
                                           occgrid, settings["files"]["plots"])
-        ax = visual_tools.plotVector(ugrids, vgrids, settings["occupancy"][0],
+        ###ax = visual_tools.plotVector(ugrids, vgrids, settings["occupancy"][0],
+        ###                                  occgrid, settings["files"]["plots"],
+        ###                                  color = "white")
+        ax = visual_tools.plotVector([uenvgrid], [venvgrid], settings["occupancy"][0],
                                           occgrid, settings["files"]["plots"],
-                                          color = "white")
-
+                                                              color = "white")
     if actiongrid is not None:
         visual_tools.plotActions(actiongrid, traveler["action2radians"], settings["occupancy"][0],
                                                               occgrid, settings["files"]["plots"])

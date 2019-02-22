@@ -11,6 +11,7 @@ def parseOptions():
 
     # Setup settings dictionary
     settings = { "iterations"  : 1,
+                 "speed"       : 10,
                  "occupancy"   : None,
                  "ucomponents" : None,
                  "vcomponents" : None,
@@ -39,6 +40,9 @@ def parseOptions():
     parser.add_option("-i", "--iterations",    dest = "iterations",   metavar = "ITERATIONS",
             default = 1,
             help = "number of solver iterations")
+    parser.add_option("-l", "--speed",         dest = "speed",        metavar = "SPEED",
+            default = 10,
+            help = "speed of vehicle (cells per second")
     parser.add_option("-o", "--occupancy",     dest = "occupancy",    metavar = "OCCUPANCY",
             help = "list of occupancy images (csv)")
     parser.add_option("-u", "--ucomponents",   dest = "ucomponents",  metavar = "UCOMPONENTS",
@@ -100,6 +104,7 @@ def parseOptions():
     settings["files"]["pandas"]     = options.pandasfile
     settings["files"]["plots"]      = options.plotsfile
     settings["iterations"]          = int(options.iterations)
+    settings["speed"]               = float(options.speed)
 
     settings["occupancy"] = options.occupancy.split(",")
 
@@ -159,7 +164,6 @@ def parseOptions():
     # Boundaries
     if options.bounds is not None:
         bounds = [int(s) for s in options.bounds.split(",")]
-        print(bounds)
         settings["bounds"]["upperleft"]  = (bounds[0], bounds[1])
         settings["bounds"]["lowerright"] = (bounds[2], bounds[3])
         if settings["start"][0]  <  settings["bounds"]["upperleft"][0]  or \
@@ -295,8 +299,6 @@ def getOccupancyGrid(occupancyImageFiles):
 
 
 def getComponentGrid(componentImageFile, band = 1):
-
-    print (componentImageFile)
 
     compgrid = None
     name, ext = splitext(componentImageFile)

@@ -98,7 +98,7 @@ def plotPath(trace, waypoints, occupancyRasterFile, occupancyGrid, plotsfile = N
 
     return ax
 
-def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10, init = True, sampleInterval = 1, color = "black"):
+def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10, init = True, sampleInterval = 10, color = "black"):
 
     plt.close("all")
 
@@ -138,7 +138,7 @@ def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = N
         else:
             vsamples_sum = vsamples_sum + vsamples
 
-        #ysamples = [rows - y for y in ysamples]
+        ysamples = [rows - y for y in ysamples]
         plt.quiver(xsamples[::], ysamples[::], usamples[::], vsamples[::], color = color)
 
         if plotsfile is not None:
@@ -158,7 +158,7 @@ def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = N
 
 
 def plotActions(actiongrid, action2radians, occupancyRasterFile, occupancyGrid, plotsfile = None,
-                width = 10, init = True, sampleInterval = 1, magnitude = 10):
+                width = 10, init = True, sampleInterval = 10, magnitude = 1):
 
     def action2uv(action, magnitude, action2radians):
         if action == '*' or action == '-' or action == ' ':

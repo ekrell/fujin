@@ -170,13 +170,6 @@ def getOutcome(move, us, vs, weights, traveler, D_max,
 
     # Combine applied u, v to get mag, dir
     maga, dira = uv2magdir(ua, va)
-    #if (row, col) == (0,0):
-    #    print("---")
-    #    print (uw, vw)
-    #    print (ut, vt)
-    #    print(ua, va)
-    #    print(maga, dira)
-    #    exit()
 
     # distance
     distance = 0
@@ -501,17 +494,17 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
     def f_work(i, m, n, cost2go, D_max, env,
             traveler, ugrids, vgrids, egrids, wgrids,
             method):
-        errors = [e[row][col] for e in egrids]
-        weights = [w[row][col] for w in wgrids]
+        errors = [e[i[0]][i[1]] for e in egrids]
+        weights = [w[i[0]][i[1]] for w in wgrids]
         g, g_work = getGameForCell(i[0], i[1], traveler, ugrids, vgrids,
                                              errors, weights, env, D_max, cost2go)
 
         solution             = solveGame(g, method)
+        world_actionspace = getWorldActionsForCell(i[0], i[1], ugrids, vgrids, errors)
+        uenv = sum(world_actionspace["uactions"][solution[3]])
+        venv = sum(world_actionspace["vactions"][solution[3]])
 
-        #cost2go[row][col]    = solution[4]
-        #work2go[row][col]    = g_work[solution[2], solution[3]]
-        #actiongrid[row][col] = traveler["actionspace"][solution[2]]
-        return (solution[4], traveler["actionspace"][solution[2]], g_work[solution[2], solution[3]])
+        return (solution[4], traveler["actionspace"][solution[2]], g_work[solution[2], solution[3]], uenv, venv)
 
 
     def getNewCost(i, G, occgrid, m, n, cost2go, D_max,
@@ -519,6 +512,12 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
         cost = D_max
         action = " "
         work = D_max
+
+        uenv = 0
+        venv = 0
+        for j in range(len(ugrids)):
+            uenv = uenv + ugrids[j][i[0]][i[1]]
+            venv = venv + vgrids[j][i[0]][i[1]]
 
         calcCost = True
 
@@ -537,7 +536,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
         # Else, calculate cost normally
         if calcCost:
-            c, b, w = f_work(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max,
+            c, b, w, u, v = f_work(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max,
                     occgrid, traveler, ugrids, vgrids, egrids, wgrids, 0)
             if c >= D_max:
                 cost = D_max
@@ -545,13 +544,22 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
             else:
                 cost = c
                 action = b
+                uenv = u
+                venv = v
 
-        return cost, action, work
+        return cost, action, work, uenv, venv
 
     cost2go = np.zeros((full_m, full_n)) + D_max
     work2go = np.zeros((full_m, full_n))
     action2go = np.array([["-" for col in range(full_n)] for row in range(full_m)])
+    uenvgrid = np.zeros((full_m, full_n))
+    venvgrid = np.zeros((full_m, full_n))
+
+    uenvgrid = np.array(ugrids[0])   # DEBUG
+    venvgrid = np.array(vgrids[0])   # DEBUG
+
     history = [{"statPath" : None, "statChange" : None} for i in range(iterations)]
+
 
     # Save a copy of current cost2go as 'prev' to compare to next iter's version
     cost2go_prev = np.array(cost2go)
@@ -567,7 +575,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
             while visitQueue:
                     i = visitQueue.pop(0)
                     # Assign cost2go at i
-                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]], work2go[i[0]][i[1]] = \
+                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]], work2go[i[0]][i[1]], uenvgrid[i[0]][i[1]], venvgrid[i[0]][i[1]] = \
                         getNewCost(i, G, occgrid, m, n, cost2go, D_max,
                                 traveler, ugrids, vgrids, egrids, wgrids)
                     # Add i's neighbors to list
@@ -583,7 +591,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
             for row in range(bounds["upperleft"][0], bounds["lowerright"][0]):
                 for col in range(bounds["upperleft"][1], bounds["lowerright"][1]):
                     i = (row, col)
-                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]], work2go[i[0]][i[1]] = \
+                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]], work2go[i[0]][i[1]], uenvgrid[i[0]][i[1]], venvgrid[i[0]][i[1]] = \
                         getNewCost(i, G, occgrid, m, n, cost2go, D_max,
                                 traveler, ugrids, vgrids, egrids, wgrids)
 
@@ -607,7 +615,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
                      traveler["target"][0], traveler["target"][1]))
             travel_tools.printStatPath(stat, copious = False)
 
-    return cost2go, work2go, action2go, history
+    return cost2go, work2go, action2go, uenvgrid, venvgrid, history
 
 def writeActiongrid(actiongrid, actionfile, bounds = None):
     numrows = len(actiongrid)

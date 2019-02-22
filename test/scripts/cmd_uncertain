@@ -1,3 +1,0 @@
-EXP=EXP5
-
-python basic_planner.py -o test/data/region.tif -u test/data/water_u.tif -v test/data/water_v.tif -w 1 -e .05 -s 250,250 -t 550,550  -c test/results/$EXP""_cost2go.txt -a test/results/$EXP""_actions.txt -x test/results/$EXP""_work2go.txt -b 200,200,600,600 --verbose --pickle test/results/$EXP""_history.pickle --pandas test/results/$EXP""_history.pandas --plots test/results/$EXP""_history_plots -i 50 -r
