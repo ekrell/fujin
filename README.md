@@ -22,6 +22,18 @@ A game-theoretic path planner.
 - __scripts:__ For generating results to analyze planner's effectiveness.
 - __tools:__ Small programs that support path planner. May be useful for data preparation.
 
+
+### Solving 2-player, 0-sum Matrix Games
+
+The code is set up such that a method parameter could be used to select
+a desired algorithm for solving matrix games. Only one is currently supported.
+
+- **Williams**: Approximate, iterative solver. 
+-- Numeric selection flag: 0
+-- Code: solver_tools.py -> solve_williams()
+-- Source: code.activestate.com/recipes/496825-game-theory-payoff-matrix-solver/
+
+
 ### Examples
 
 __Example A: a single environment vector acts against the traveler__

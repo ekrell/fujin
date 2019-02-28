@@ -172,7 +172,9 @@ def getVectorSum(us, vs, weights):
         weights (array(float, ndim=1)): Weight of each vector.
 
     Returns:
-        (float, float) with weighted sum of u components, v components
+        (tuple): Tuple containing:
+            utotal (float): weighted sum of u components
+            vtotal (float): weighted sum of v components
     '''
 
     utotal = 0
@@ -200,7 +202,9 @@ def getVectorDiff(us, vs, weights):
         weights (array(float, ndim=1)): Weight of each vector.
 
     Returns:
-        (float, float) with weighted sum of u components, v components
+        (tuple): tuple containing:
+            utotal (float): weighted diff of u components
+            vtotal (float): weighted diff of v components
     '''
 
     utotal = us[0] # Get first vector
@@ -227,7 +231,9 @@ def magdir2uv(mag, dir_radians):
         dir_radians (float): direction of force in radians.
 
     Returns:
-        (float, float) of u component, v component
+        (tuple): tuple containing:
+            u (float): u component.
+            v (float): v component.
     '''
 
     u = mag * cos(dir_radians)
@@ -243,7 +249,9 @@ def uv2magdir(u, v):
         v (float): v component
 
     Returns:
-        (float, float) of magnitude, direction in radians
+        (tuple): tuple containing:
+            m (float): magnitude.
+            d (float): direction in radians.
     '''
 
     m = sqrt(u * u + v * v) # Calculate magnitude
@@ -264,7 +272,7 @@ def getOutcome(move, us, vs, weights, traveler, D_max,
         us (array(float, ndim=1)): U components of forces applied to traveler.
         vs (array(float, ndim=1)): V components of forces applied to traveler.
         weights (array(float, ndim=1)): Relative importance of each vector.
-        traveler (Dict of 'Traveler'): See data documentation.
+        traveler (Dict of 'Traveler'): See DEVELOPERS.md for data structures.
         D_max (float): Largest possible cost, or greater.
         cost2go (array_like(float, ndim=2)): Cost of the each region location.
             Defaults to None.
@@ -272,7 +280,9 @@ def getOutcome(move, us, vs, weights, traveler, D_max,
         col (int): Index into second dimension of cost2go. Defaults to None.
 
     Returns:
-        (float, float) of cost based on work, cost based on next location.
+        (tuple): tuple containing:
+            work (float): cost based on work.
+            workc (float): cost based on work and subsequent location.
     '''
 
     # Get resultant vector of all weighted world sources
@@ -360,7 +370,7 @@ def getGameForCell(row, col, traveler, ugrids, vgrids,
     Args:
         row (int): Location of cell.
         col (int): Location of cell.
-        traveler (dict of 'traveler'): See data documentation.
+        traveler (dict of 'traveler'): See DEVELOPERS.md for data structures.
         ugrids (List of array(float, ndim=2)): U components of forces.
         vgrids (List of array(float, ndim=2)): V components of forces.
         errors (List of array(float, ndim=2)): Errors of forces.
@@ -371,9 +381,9 @@ def getGameForCell(row, col, traveler, ugrids, vgrids,
             Defaults to None.
 
     Returns:
-        (array(float, ndim=2), array(float, ndim=2)) of
-            2-player 0-sum game, work only for actions.
-
+        (tuple): tuple containing:
+            game (array(float, ndim=2)): 2-player 0-sum game.
+            game_work (array(float, ndim=2)): work only for actions.
     '''
 
     # All actions available to world
@@ -405,14 +415,24 @@ def getGameForCell(row, col, traveler, ugrids, vgrids,
     return game, game_work
 
 
-def solve_williams(payoff_matrix, iterations=100):
-    '''
-    Source: http://code.activestate.com/recipes/496825-game-theory-payoff-matrix-solver/
+def solve_williams(payoff_matrix, iterations = 100):
+    '''Approximate solver for 2-player, 0-sum matrix game Nash equilibrium.
+        Simulated a sequence of alternating plays where players respond
+        to strategy of other players. After a set number of iterations,
+        terminates. The proportion of each selection is the probability
+        in the mixed policy.
 
-    Approximate the strategy oddments for 2 person zero-sum games of perfect information.
+    References:
+        http://code.activestate.com/recipes/496825-game-theory-payoff-matrix-solver/
 
-    Applies the iterative solution method described by J.D. Williams in his classic
-    book, The Complete Strategyst, ISBN 0-486-25101-2.   See chapter 5, page 180 for details.
+    Args:
+        payoff_matrix (array(float, ndim=2)): Game to solve.
+        iterations (int): Number of solver iterations. Defaults to 100.
+
+    Returns:
+        (tuple): tuple containing:
+            array(float, ndim=1): mixed policy for row player.
+            array(float, ndim=1): mixed policy for column player.
     '''
 
     payoff_matrix = (-1) * payoff_matrix
@@ -439,60 +459,26 @@ def solve_williams(payoff_matrix, iterations=100):
     value_of_game = (max(row_cum_payoff) + min(col_cum_payoff)) / 2.0 / iterations
     return np.array(rowcnt).astype(float) / iterations, np.array(colcnt).astype(float) / iterations
 
-def solve_gambit(game):
-    import gambit
-
-    #game = (-1) * np.array([ [10, 0], [0, 0] ])
-    game = game
-
-    m = game.shape[0]
-    n = game.shape[1]
-
-    g = gambit.Game.new_table([m, n])
-    g.title = "solve cell"
-    g.players[0].label = "traveler"
-    g.players[1].label = "fujin"
-
-    # Populate game
-    for row in range(m):
-        for col in range(n):
-            g[row, col][0] = int(game[row][col] * 1000)
-            g[row, col][1] = (-1) * int(game[row][col] * 1000)
-
-    solver = gambit.nash.ExternalEnumMixedSolver()
-    solution = solver.solve(g)
-    solution = np.asarray(solution[0])
-    y = solution[0:m]
-    z = solution[m:m+n]
-    return y, z
-
-def solve_nashpy(game):
-    import nashpy as nash
-
-    rps = nash.Game(game)
-    eqs = list(rps.support_enumeration())
-
-    y = eqs[0]
-    z = eqs[1]
-
-    return y, z
-
 def solveGame(game, method = 0):
+    '''Solves a 2-player, 0-sum matrix game using selected method.
+        Currently only a single method is available.
 
-    '''
-       methods
-       ------------
-       0 : williams
-       1 : gambit
-       2 : nashpy
+    Args:
+        game (array(float, ndim=2)): Matrix game to solve.
+        method (int): Numeric flag to choose game.
+
+    Returns:
+        (tuple): tuple containing:
+            y (array(float, ndim=1)): mixed policy for row player.
+            z (array(float, ndim=1)): mixed policy for column player.
+            i (int): pure policy for row player.
+            j (int): pure policy for column player.
+            v (float): value of game when applying pure policies.
     '''
 
-    if   method == 0:
+    # Call selected method
+    if method == 0:
         y, z = solve_williams(game)
-    elif method == 1:
-        y, z = solve_gambit(game)
-    elif method == 2:
-        y, z = solve_nashpy(game)
 
     # Convert to pure policy
     i = np.argmax(y)
@@ -503,12 +489,39 @@ def solveGame(game, method = 0):
 
 
 def printGame(game):
+    '''Prints a matrix game.
+
+    Args:
+        game (array(float, ndim=2)): 2-player matrix game.
+
+    Returns:
+        None.
+    '''
+
     for row in range(len(game)):
         for col in range(len(game[0])):
             print("{0:.2f}".format(game[row][col])),
         print ("")
 
 def printSolution(solution, name = ""):
+    '''Prints solution of 2-player, 0-sum matrix game.
+        Includes the original mixed policies as well
+        as pure policies that are the highest-probability mixed option.
+        An optional name can be provided to describe the solution source.
+
+    Args:
+        solution (tuple): tuple containing:
+            array(float, ndim=1): mixed policy for row player.
+            array(float, ndim=1): mixed policy for column player.
+            int: pure policy for row player.
+            int: pure policy for column player.
+            float: value of game when applying pure policies.
+        name (string): Solution identification. Defaults to "".
+
+    Returns:
+        None.
+    '''
+
     print("Nash Solution " + name)
     print("Player 1:" )
     print("    Pure security policy: {}".format(solution[2]))
@@ -528,8 +541,51 @@ def printSolution(solution, name = ""):
 
 
 def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
-        bounds = None, verbose = False, iterations = None, method = 0, style = "fast"):
+               bounds = None, verbose = False, iterations = None, method = 0,
+               style = "fast"):
+    '''Builds the dynamic programming cost2go value for each cell in the region.
+        Does so iteratively, since incorrect values may be temporarily recorded.
 
+    See 'Game-theoretic Dynamic Programming for Motion Planning of Unmanned
+        Surface Vehicles Given Uncertain Environmental Forces' - Evan Krell,
+        Luis Rodolfo GARCIA CARRILLO, Scott A. King (Under Review).
+
+    Args:
+        traveler (dict of 'traveler'): see developers.md for data structs.
+        occgrid (array(int, ndim=2)): Binary occupancy grid.
+        ugrids (List of array(float, ndim=2)): U components of forces.
+        vgrids (List of array(float, ndim=2)): V components of forces.
+        egrids (List of array(float, ndim=2)): Error of u, v at that location.
+        wgrids (List of array(float, ndim=2)): Weights of forces.
+        bounds (dict): A dict with the following keys:
+            upperleft (tuple): A tuple containing:
+                (int): Row of upper-left corner of boundary to solve.
+                (int): Column of upper-left corner of boundary to solve.
+            lowerright (tuple): A tuple containing:
+                (int): Row of lower-right corner of boundary to solve.
+                (int): Column of lower-right corner of boundary to solve.
+            Defaults to None, meaning the entire region is within bounds.
+        verbose (bool): Whether to print summary after every iteration.
+            Defaults to False.
+        iterations (integer). Number of iterations of dynamic programming.
+            Defaults to None.
+        method (integer). Selects a matrix game solver.
+            See README.md for choices. Defaults to 0.
+        style (integer). Which algorithm for updating cost2go values.
+            "fast" or "slow" supported. Defaults to "fast".
+
+    Returns:
+        cost2go (array(float, ndim=2): Cost of visiting each cell in region.
+        work2go (array(float, ndim=2): Work done at each cell in region.
+        action2go (array(float, ndim=2): Motion plan over region.
+        uenvgrid (array(float, ndim=2): U of force applied by environment.
+        venvgrid (array(float, ndim=2): V of force applied by environment.
+        history (List of dict): A dictionary with the following keys:
+            statPath (dict of 'statPath'): DEVELOPMENT.md for data structs.
+            statChange (dict of 'statChange'): DEVELOPEMENT.md for data structs.
+    '''
+
+    # If no bounds set, set bounds to region extent
     if bounds["upperleft"] is None:
         bounds["upperleft"] = (0, 0)
     if bounds["lowerright"] is None:
@@ -547,50 +603,99 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
     # Minimum distance between neighbors
     d_min = 0
     # Maximum distance between neighbors
-    d_max = sqrt(2) * 10 # Put 1000 but unsure max work
+    d_max = sqrt(2) * 10 # Put 10 but unsure max work
     # Maximum cost
-    D_max = M * d_max# * 100000000000 # D_max must be > (M - 1) * d_max
+    D_max = M * d_max # Since costs accum with size of region.
 
     if iterations == None:
         iterations = M
 
-    # Get neighbors
-    # Distance between location i and j
     def distance(i, j):
+        '''Euclidean distance between points i and j.
+
+        Args:
+            i (tuple): tuple containing:
+                (int): row of ith point.
+                (int): column of ith point.
+            j (tuple): tuple containing:
+                (int): row of jth point.
+                (int): column of jth point.
+
+        Returns:
+            dist (float): Euclidean distance.
+
+        '''
+
         dist = pow((pow(i[0] - j[0], 2) + pow(i[1] - j[1], 2)), 0.5)
         return dist
 
-    def f(i, m, n, cost2go, D_max, env):
-        B = getNeighbors(i, m, n, env)
+    ##def f(i, m, n, cost2go, D_max, env):
+    ##    B = getNeighbors(i, m, n, env)
 
-        cost_min = D_max
-        b_min = (None, None, "-")
-        for b in B:
-            cost = distance(i, b) + cost2go[b[0]][b[1]]
-            if cost < cost_min:
-                cost_min = cost
-                b_min = b
+    ##    cost_min = D_max
+    ##    b_min = (None, None, "-")
+    ##    for b in B:
+    ##        cost = distance(i, b) + cost2go[b[0]][b[1]]
+    ##        if cost < cost_min:
+    ##            cost_min = cost
+    ##            b_min = b
 
-        return cost_min, b_min
+    ##    return cost_min, b_min
 
-    def f_work(i, m, n, cost2go, D_max, env,
-            traveler, ugrids, vgrids, egrids, wgrids,
-            method):
+    def f_work(i, m, n, cost2go, D_max, env, traveler, ugrids, vgrids, egrids,
+               wgrids, method):
+        '''Calculate work, action at cell i.
+            Work to maintain traveler's target velocity in presence
+            of environment forces. Action is motion plan action to take at i.
+            If forces have nonzero errors, solution dependent on solving
+            2-player, 0-sum matrix game. Otherwise, calculate with the
+            static forces at i.
+
+        Args:
+            i (tuple): tuple containing:
+                (int): row of ith point.
+                (int): column of ith point.
+            m (int): Number of rows in region.
+            n (int): Number of columns in region.
+            cost2go: (array(float, ndim=2): Cost of visiting each cell in region.
+            D_max (float): Largest possible cost, or greater.
+            env (array(int, ndim=2)): Binary occupancy grid.
+            traveler (dict of 'traveler'): see developers.md for data structs.
+            ugrids (List of array(float, ndim=2)): U components of forces.
+            vgrids (List of array(float, ndim=2)): V components of forces.
+            egrids (List of array(float, ndim=2)): Errors of forces.
+            wgrids (List of array(float, ndim=2)): Weights of forces.
+            method (integer). Selects a matrix game solver.
+                See README.md for choices. Defaults to 0.
+
+        Returns:
+            (float): cost of selected action.
+            (string): selected action as action symbol.
+            (float): work to perform selected action.
+            uenv (): U component of summed environment forces.
+            venv (): V component of summed environment forces.
+        '''
+
         errors = [e[i[0]][i[1]] for e in egrids]
         weights = [w[i[0]][i[1]] for w in wgrids]
         g, g_work = getGameForCell(i[0], i[1], traveler, ugrids, vgrids,
-                                             errors, weights, env, D_max, cost2go)
+                                   errors, weights, env, D_max, cost2go)
 
-        solution             = solveGame(g, method)
-        world_actionspace = getWorldActionsForCell(i[0], i[1], ugrids, vgrids, errors)
+        solution = solveGame(g, method)
+        world_actionspace = getWorldActionsForCell(i[0], i[1], ugrids,
+                                                   vgrids, errors)
+
         uenv = sum(world_actionspace["uactions"][solution[3]])
         venv = sum(world_actionspace["vactions"][solution[3]])
 
-        return (solution[4], traveler["actionspace"][solution[2]], g_work[solution[2], solution[3]], uenv, venv)
+        return (solution[4], traveler["actionspace"][solution[2]],
+                g_work[solution[2], solution[3]], uenv, venv)
 
 
-    def getNewCost(i, G, occgrid, m, n, cost2go, D_max,
-            traveler, ugrids, vgrids, egrids, wgrids):
+    def getNewCost(i, G, occgrid, m, n, cost2go, D_max, traveler,
+                   ugrids, vgrids, egrids, wgrids):
+
+
         cost = D_max
         action = " "
         work = D_max
@@ -618,8 +723,9 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
         # Else, calculate cost normally
         if calcCost:
-            c, b, w, u, v = f_work(i, occgrid.shape[0], occgrid.shape[1], cost2go, D_max,
-                    occgrid, traveler, ugrids, vgrids, egrids, wgrids, 0)
+            c, b, w, u, v = f_work(i, occgrid.shape[0], occgrid.shape[1],
+                    cost2go, D_max, occgrid, traveler, ugrids, vgrids, egrids,
+                    wgrids, 0)
             if c >= D_max:
                 cost = D_max
                 action = '-'
@@ -633,17 +739,18 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
     cost2go = np.zeros((full_m, full_n)) + D_max
     work2go = np.zeros((full_m, full_n))
-    action2go = np.array([["-" for col in range(full_n)] for row in range(full_m)])
+    action2go = np.array([["-" for col in range(full_n)] for row in \
+            range(full_m)])
     uenvgrid = np.zeros((full_m, full_n))
     venvgrid = np.zeros((full_m, full_n))
 
     uenvgrid = np.array(ugrids[0])   # DEBUG
     venvgrid = np.array(vgrids[0])   # DEBUG
 
-    history = [{"statPath" : None, "statChange" : None} for i in range(iterations)]
+    history = [{"statPath" : None, "statChange" : None} for i in \
+            range(iterations)]
 
-
-    # Save a copy of current cost2go as 'prev' to compare to next iter's version
+    # Save copy of cost2go as 'prev' to compare to next iter's version
     cost2go_prev = np.array(cost2go)
 
     for k in range(iterations):
@@ -657,23 +764,31 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
             while visitQueue:
                     i = visitQueue.pop(0)
                     # Assign cost2go at i
-                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]], work2go[i[0]][i[1]], uenvgrid[i[0]][i[1]], venvgrid[i[0]][i[1]] = \
+                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]],
+                    work2go[i[0]][i[1]], uenvgrid[i[0]][i[1]],
+                    venvgrid[i[0]][i[1]] = \
                         getNewCost(i, G, occgrid, m, n, cost2go, D_max,
                                 traveler, ugrids, vgrids, egrids, wgrids)
                     # Add i's neighbors to list
-                    B = getNeighbors(i, occgrid.shape[0], occgrid.shape[1], occgrid)
+                    B = getNeighbors(i, occgrid.shape[0], occgrid.shape[1],
+                                     occgrid)
                     for b in B:
                         b = (b[0], b[1])
-                        if     b[0] >= bounds["upperleft"][0] and b[0] <= bounds["lowerright"][0] and \
-                               b[1] >= bounds["upperleft"][1] and b[1] <= bounds["lowerright"][1]:
+                        if  b[0] >= bounds["upperleft"][0] and b[0] <= \
+                            bounds["lowerright"][0] and \
+                            b[1] >= bounds["upperleft"][1] and b[1] <= \
+                            bounds["lowerright"][1]:
                             if b not in visitHistory:
                                 visitQueue.append(b)
                                 visitHistory.add(b)
         elif style == "slow":
             for row in range(bounds["upperleft"][0], bounds["lowerright"][0]):
-                for col in range(bounds["upperleft"][1], bounds["lowerright"][1]):
+                for col in range(bounds["upperleft"][1],
+                                 bounds["lowerright"][1]):
                     i = (row, col)
-                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]], work2go[i[0]][i[1]], uenvgrid[i[0]][i[1]], venvgrid[i[0]][i[1]] = \
+                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]],
+                    work2go[i[0]][i[1]], uenvgrid[i[0]][i[1]],
+                    venvgrid[i[0]][i[1]] = \
                         getNewCost(i, G, occgrid, m, n, cost2go, D_max,
                                 traveler, ugrids, vgrids, egrids, wgrids)
 
