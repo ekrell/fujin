@@ -577,7 +577,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
     Returns:
         cost2go (array(float, ndim=2): Cost of visiting each cell in region.
         work2go (array(float, ndim=2): Work done at each cell in region.
-        action2go (array(float, ndim=2): Motion plan over region.
+        action2go (array(string, ndim=2): Motion plan over region as symbols.
         uenvgrid (array(float, ndim=2): U of force applied by environment.
         venvgrid (array(float, ndim=2): V of force applied by environment.
         history (List of dict): A dictionary with the following keys:
@@ -672,8 +672,8 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
             (float): cost of selected action.
             (string): selected action as action symbol.
             (float): work to perform selected action.
-            uenv (): U component of summed environment forces.
-            venv (): V component of summed environment forces.
+            uenv (float): U component of summed environment forces.
+            venv (float): V component of summed environment forces.
         '''
 
         errors = [e[i[0]][i[1]] for e in egrids]
@@ -694,6 +694,34 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
 
     def getNewCost(i, G, occgrid, m, n, cost2go, D_max, traveler,
                    ugrids, vgrids, egrids, wgrids):
+
+        '''Get action and cost at cell i. Only solves game, calculates work
+            if appropriate for point i. The goal's cost is always 0 with
+            the halt action. Obstacles have action (" ") and maximal cost.
+
+        Args:
+            i (tuple): tuple containing:
+                (int): row of ith point.
+                (int): column of ith point.
+            G
+            occgrid (array(int, ndim=2)): Binary occupancy grid.
+            m (int): Number of rows in region.
+            n (int): Number of columns in region.
+            cost2go: (array(float, ndim=2): Cost of visiting each cell in region.
+            D_max (float): Largest possible cost, or greater.
+            traveler (dict of 'traveler'): see developers.md for data structs.
+            ugrids (List of array(float, ndim=2)): U components of forces.
+            vgrids (List of array(float, ndim=2)): V components of forces.
+            egrids (List of array(float, ndim=2)): Errors of forces.
+            wgrids (List of array(float, ndim=2)): Weights of forces.
+
+        Returns:
+            cost (float): cost of selected action.
+            action (string): selected action as action symbol.
+            work (float): work to perform selected action.
+            uenv (float): U component of summed environment forces.
+            venv (float): V component of summed environment forces.
+        '''
 
 
         cost = D_max
@@ -815,6 +843,24 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
     return cost2go, work2go, action2go, uenvgrid, venvgrid, history
 
 def writeActiongrid(actiongrid, actionfile, bounds = None):
+    '''Writes action grid (motion plan as action symbols) to ASCII file.
+
+    Args:
+        actiongrid (array(string, ndim=2): Motion plan over region as symbols.
+        actionfile (string): Path to write ASCII file.
+        bounds (dict): A dict with the following keys:
+            upperleft (tuple): A tuple containing:
+                (int): Row of upper-left corner of boundary to solve.
+                (int): Column of upper-left corner of boundary to solve.
+            lowerright (tuple): A tuple containing:
+                (int): Row of lower-right corner of boundary to solve.
+                (int): Column of lower-right corner of boundary to solve.
+            Defaults to None, meaning the entire region is within bounds.
+
+    Returns:
+        None.
+    '''
+
     numrows = len(actiongrid)
     numcols = len(actiongrid[0])
 
@@ -830,6 +876,15 @@ def writeActiongrid(actiongrid, actionfile, bounds = None):
     af.close()
 
 def readActiongrid(actionfile):
+    '''Reads action grid (motion plan as action symbols) from ASCII file.
+
+    Args:
+        actionfile (string): Path to read ASCII file.
+
+    Returns:
+        actiongrid (array(string, ndim=2): Motion plan over region as symbols.
+    '''
+
     actiongrid = np.genfromtxt(actionfile, delimiter = 1, dtype = "string")
     return actiongrid
 
