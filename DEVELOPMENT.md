@@ -9,10 +9,11 @@ The code makes use of several dictionaries that appear throughout.
 The expected key:value contents are described below.  
 
 **environment**
+
 Stores a variety of data elements that describe the region, environment
 in which motion planning is taking place. Sometimes abbreviated env. 
 
-__Key:Value Pairs__
+_Key:Value Pairs_
 - iterations (int): Number of times to run dynamic programming solver.
 - speed (float): Traveler's speed in cells per second.
 - occupancy (List of str): Paths to occupancy grids.
@@ -46,27 +47,29 @@ __Key:Value Pairs__
         - (int): Column of lower-right corner of boundary to solve.
 
 
-__Related functions__
+_Related functions_
 - env_setup.py -> parseOptions : Creates new environment using command line args. 
 
 **traveler**
+
 Represents the agent who is trying to generate a motion plan to reach a goal position. 
 
-__Key:Value Pairs__
+_Key:Value Pairs_
 - start (int, int): row, col coordinates of start position.
 - target (int, int): row, col coordinates of target position.
 - actionspace (list of strings): Possible movements as symbols (ex: "^" -> up).
 - action2radians (Dict of string:float): Movement symbols query movement angle (ex: "^" -> (pi/2)).
 - speed_cps (float): Speed of traveler in grid cells per second.
 
-__Related functions__
+_Related functions_
 - env_setup.py -> getTraveler : Creates a new traveler. 
 
 **pstat**
+
 Holds statistics of following a particular action sequence (path)
 in a given cost2go, work2go. 
 
-__Key:Value Pairs__
+_Key:Value Pairs_
 - distances (List of float): Distances of path.
 - distance_sum (float): Total distance of path.
 - num_cells (int): Number of cells path visits.
@@ -76,7 +79,7 @@ __Key:Value Pairs__
 - works (List of float): Work for each action.
 - work_sum (float): Total work of path.
 
-__Related functions__
+_Related functions_
 - travel_tools -> statPath : Creates a new pstat.
 
 
