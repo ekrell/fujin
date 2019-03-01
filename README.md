@@ -29,9 +29,9 @@ The code is set up such that a method parameter could be used to select
 a desired algorithm for solving matrix games. Only one is currently supported.
 
 - **Williams**: Approximate, iterative solver. 
--- Numeric selection flag: 0
--- Code: solver_tools.py -> solve_williams()
--- Source: code.activestate.com/recipes/496825-game-theory-payoff-matrix-solver/
+    - Numeric selection flag: 0
+    - Code: solver_tools.py -> solve_williams()
+    - Source: code.activestate.com/recipes/496825-game-theory-payoff-matrix-solver/
 
 
 ### Examples
