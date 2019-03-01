@@ -12,15 +12,18 @@ def main():
     #########
     # Setup #
     #########
+    # Init blank history
     history = None
+    # Parse options
     options, args, settings = env_setup.parseOptions()
+    # Create 'traveler' (dict)
+    traveler = env_setup.getTraveler(settings["start"], settings["target"],
+                                                settings["speed"], "16way")
 
-    print(settings)
-
-    traveler = env_setup.getTraveler(settings["start"], settings["target"], settings["speed"], "16way")
     env_setup.printEnv(settings)
     occgrid = env_setup.getOccupancyGrid(settings["occupancy"])
-    ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"], settings["vcomponents"], occgrid)
+    ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"],
+                                     settings["vcomponents"], occgrid)
     wgrids = env_setup.getWeightGrids(occgrid, settings["weights"],
                               settings["weightgrids"], len(ugrids))
     egrids  = env_setup.getErrorGrids (occgrid, settings["errors"],

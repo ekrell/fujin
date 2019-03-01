@@ -14,40 +14,9 @@ def parseOptions():
 
     Returns:
         (tuple): Tuple containing:
-            options: output from optparse library.
-            args: output from optparse library.
-            settings (dict): A dict with the following keys:
-                iterations (int):
-                speed (float):
-                occupancy (List of str): Paths to occupancy grids.
-                ucomponents (List of str): Paths to u component grids.
-                vcomponents (List of str): Paths to v component grids.
-                weights (List of floats): Constant weights per force.
-                weightgrids (List of str): Paths to weight grids per force.
-                errors (List of floats): Constant errors per force.
-                errorgrids (List of str): Paths to error grids per force.
-                start (tuple): tuple containing:
-                    (int) Row of traveler's start location.
-                    (int) Column of traveler's start location.
-                target (tuple): tuple containing:
-                    (int) Row of traveler's target location.
-                    (int) Column of traveler's target location.
-                files (dict): A dict with the following keys:
-                    cost2go: Path to ASCII cost2go grid.
-                    work2go: Path to ASCII work2go grid.
-                    actiongrid: Path to ASCII work2go grid.
-                    pickle: Path to pickle file for results archive.
-                    pandas: Path to results stats csv.
-                    plots: Path (prefix) for result figures.
-                verbose (bool): Whether to print verbose output.
-                reuse (bool): Whether to reuse motion plan to get stats, figures.
-                bounds (dict): A dict with the following keys:
-                    upperleft (tuple): A tuple containing:
-                        (int): Row of upper-left corner of boundary to solve.
-                        (int): Column of upper-left corner of boundary to solve.
-                    lowerright (tuple): A tuple containing:
-                        (int): Row of lower-right corner of boundary to solve.
-                        (int): Column of lower-right corner of boundary to solve.
+            options: Output from optparse -> parseArgs()
+            args: Output from optparse -> parseArgs()
+            settings (dict of 'environment'): See DEVELOPMENT.md data structs.
     '''
 
     from optparse import OptionParser
