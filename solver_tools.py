@@ -272,7 +272,7 @@ def getOutcome(move, us, vs, weights, traveler, D_max,
         us (array(float, ndim=1)): U components of forces applied to traveler.
         vs (array(float, ndim=1)): V components of forces applied to traveler.
         weights (array(float, ndim=1)): Relative importance of each vector.
-        traveler (Dict of 'Traveler'): See DEVELOPERS.md for data structures.
+        traveler (dict of 'Traveler'): See DEVELOPERS.md for data structures.
         D_max (float): Largest possible cost, or greater.
         cost2go (array_like(float, ndim=2)): Cost of the each region location.
             Defaults to None.
