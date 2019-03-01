@@ -25,5 +25,21 @@ reach a goal position.
 __Related functions:__
 - env_setup.py -> getTraveler : Creates a new traveler. 
 
+**pstat**
+Holds statistics of following a particular action sequence (path)
+in a given cost2go, work2go. 
+
+- distances (List of float): Distances of path.
+- distance_sum (float): Total distance of path.
+- num_cells (int): Number of cells path visits.
+- num_waypoints (int): Number of path waypoints.
+- costs (List of float): Cost of each action.
+- cost_sum (float): Total cost of path.
+- works (List of float): Work for each action.
+- work_sum (float): Total work of path.
+
+__Related functions:__
+- travel_tools -> statPath : Creates a new pstat.
+
 
 

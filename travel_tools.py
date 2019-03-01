@@ -1,6 +1,20 @@
 import numpy as np
 
 def move(loc, act):
+    '''Get next location based on taking an action
+        in a current location.
+
+    Args:
+        loc (tuple): tuple containing:
+            (int): Row of current location.
+            (int): Column of current location.
+        act (str): Action as symbol.
+
+    Returns:
+        (tuple): tuple containing:
+            (int): Row of next location.
+            (int): Column of next location.
+    '''
     if   act == "^":
         return (loc[0] - 1, loc[1])
     elif act == "v":
@@ -36,22 +50,36 @@ def move(loc, act):
     else:
         return loc
 
-def followPath(start, actiongrid):
+def followPath(start, action2go):
+    '''Executes motion plan from a start location.
 
-    # Returns:
-    #   trace: all cells
-    #   waypoints: only where turns happen
+    Args:
+        start (tuple): tuple containing:
+            (int): Row of start location.
+            (int): Column of start location.
+        action2go (array(string, ndim=2): Motion plan over region as symbols.
+
+    Returns:
+        (tuple): tuple containing:
+            trace (List of (tuple)): Sequence of locations, tuple containing:
+                (int): Row of path location.
+                (int): Column of path location.
+            waypoints ((List of (tuple)): Sequence of locations where
+                direction changes, tuple containing:
+                (int): Row of path location.
+                (int): Column of path location.
+    '''
 
     loc = start
-    act = actiongrid[loc[0]][loc[1]]
+    act = action2go[loc[0]][loc[1]]
 
     acts      = [act]
     trace     = [loc]
     waypoints = [loc]
 
-    while actiongrid[loc[0]][loc[1]] != "*":
+    while action2go[loc[0]][loc[1]] != "*":
         loc = move(loc, act)
-        act = actiongrid[loc[0]][loc[1]]
+        act = action2go[loc[0]][loc[1]]
         acts.append(act)
         trace.append(loc)
         if act != acts[len(acts) - 2]:
@@ -60,6 +88,23 @@ def followPath(start, actiongrid):
     return trace, waypoints
 
 def statPath(trace, waypoints, cost2go, work2go):
+    '''Measures a number of statistics related to a path.
+        Distance, cost, work, cells visited, and number of waypoints.
+
+    Args:
+        trace (List of (tuple)): Sequence of locations, tuple containing:
+            (int): Row of path location.
+            (int): Column of path location.
+        waypoints ((List of (tuple)): Sequence of locations where
+            direction changes, tuple containing:
+            (int): Row of path location.
+            (int): Column of path location.
+        cost2go (array(float, ndim=2): Cost of visiting each cell in region.
+        work2go (array(float, ndim=2): Work done at each cell in region.
+
+    Returns:
+        pstat (dict of 'pstat'): See DEVELOPMENT.md data structs.
+    '''
 
     pstat = { "distances"     : None,
               "distance_sum"  : None,
@@ -97,6 +142,17 @@ def statPath(trace, waypoints, cost2go, work2go):
 
 
 def printStatPath(pstat, copious = True):
+    '''Prints data in 'pstat' dict.
+
+    Args:
+        pstat (dict of 'pstat'): See DEVELOPMENT.md data structs.
+        copious (bool): If True, prints raw 'pstat'. Else, formatted subset.
+            Defaults to True.
+
+    Returns:
+        None
+    '''
+
     if copious == True:
         print(pstat)
     else:
