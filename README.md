@@ -156,11 +156,12 @@ __Example Tb: Solve a single game
 - [X] Pandas convergence
 - [X] Graph convergence
 - [X] Graph path and actionspace
-- [X] Compare to: no uncertainty
-- [X] Compare to: no work
-- [ ] Compare to: metahueristic planner
 - [X] Decide output format
 - [X] Convert to waypoints
 - [X] Specify subregion to solve
-- [ ] 8 direction movement
+- [X] 16 direction movement
 - [X] Save convergence history as pickle
+- [ ] solvertools: assumes 16-way movement
+- [ ] Need separate error for u and v components
+- [ ] Need separate action selection for u and v components
+- [ ] env_setup -> getComponentGrid: why does it accept band parameter, then use 1 anyway?
