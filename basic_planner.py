@@ -19,7 +19,6 @@ def main():
     # Create 'traveler' (dict)
     traveler = env_setup.getTraveler(settings["start"], settings["target"],
                                                 settings["speed"], "16way")
-
     env_setup.printEnv(settings)
     occgrid = env_setup.getOccupancyGrid(settings["occupancy"])
     ugrids, vgrids = env_setup.getVectorGrids(settings["ucomponents"],
@@ -42,8 +41,10 @@ def main():
         # Save work2go
         np.savetxt(settings["files"]["work2go"], work2go)
         # Save envgrid
-        ###np.savetxt(settings["files"]["uenvgrid"], uenvgrid)
-        ###np.savetxt(settings["files"]["venvgrid"], venvgrid)
+        if options.uactionfile is not None:
+            np.savetxt(settings["files"]["uaction"], uenvgrid)
+        if options.vactionfile is not None:
+            np.savetxt(settings["files"]["vaction"], venvgrid)
         # Save actiongrid
         solver_tools.writeActiongrid(actiongrid, settings["files"]["actiongrid"])
         # Save convergence history
@@ -71,6 +72,10 @@ def main():
         stat = travel_tools.statPath(trace, waypoints, cost2go, work2go)
         # Print stat
         travel_tools.printStatPath(stat, copious = False)
+    # Save path waypoints
+    if settings["files"]["waypoints"] is not None:
+        with open(settings["files"]
+
 
     ##############
     # Path Stats #

@@ -762,7 +762,6 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
                 action = b
                 uenv = u
                 venv = v
-
         return cost, action, work, uenv, venv
 
     cost2go = np.zeros((full_m, full_n)) + D_max
@@ -792,9 +791,9 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
             while visitQueue:
                     i = visitQueue.pop(0)
                     # Assign cost2go at i
-                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]],
+                    (cost2go[i[0]][i[1]], action2go[i[0]][i[1]],
                     work2go[i[0]][i[1]], uenvgrid[i[0]][i[1]],
-                    venvgrid[i[0]][i[1]] = \
+                    venvgrid[i[0]][i[1]]) = \
                         getNewCost(i, G, occgrid, m, n, cost2go, D_max,
                                 traveler, ugrids, vgrids, egrids, wgrids)
                     # Add i's neighbors to list
@@ -814,9 +813,9 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
                 for col in range(bounds["upperleft"][1],
                                  bounds["lowerright"][1]):
                     i = (row, col)
-                    cost2go[i[0]][i[1]], action2go[i[0]][i[1]],
+                    (cost2go[i[0]][i[1]], action2go[i[0]][i[1]],
                     work2go[i[0]][i[1]], uenvgrid[i[0]][i[1]],
-                    venvgrid[i[0]][i[1]] = \
+                    venvgrid[i[0]][i[1]]) = \
                         getNewCost(i, G, occgrid, m, n, cost2go, D_max,
                                 traveler, ugrids, vgrids, egrids, wgrids)
 
@@ -840,6 +839,7 @@ def getCost2go(traveler, occgrid, ugrids, vgrids, egrids, wgrids,
                      traveler["target"][0], traveler["target"][1]))
             travel_tools.printStatPath(stat, copious = False)
 
+    print(work2go)
     return cost2go, work2go, action2go, uenvgrid, venvgrid, history
 
 def writeActiongrid(actiongrid, actionfile, bounds = None):

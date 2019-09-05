@@ -79,6 +79,10 @@ def parseOptions():
             help = "file to store grid with traveler applied work for each cell")
     parser.add_option("-a", "--actionfile",    dest = "actionfile",   metavar = "ACTIONFILE",
             help = "file to store grid with traveler actions for each cell")
+    parser.add_option(      "--uactionfile",   dest = "uactionfile",  metavar = "UACTIONFILE",
+            help = "file to store grid with environment's applied u-component of force")
+    parser.add_option(      "--vactionfile",   dest = "vactionfile",  metavar = "VACTIONFILE",
+            help = "file to store grid with environment's applied v-component of force")
     parser.add_option("--picklefile",          dest = "picklefile",   metavar = "PICKLEFILE",
             help = "file to store convergence history as pickle")
     parser.add_option("--pandasfile",          dest = "pandasfile",   metavar = "PANDASFILE",
@@ -115,6 +119,8 @@ def parseOptions():
     settings["files"]["pickle"]     = options.picklefile
     settings["files"]["pandas"]     = options.pandasfile
     settings["files"]["plots"]      = options.plotsfile
+    settings["files"]["uaction"]    = options.uactionfile
+    settings["files"]["vaction"]    = options.vactionfile
     settings["iterations"]          = int(options.iterations)
     settings["speed"]               = float(options.speed)
 

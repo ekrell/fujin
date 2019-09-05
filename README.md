@@ -36,98 +36,7 @@ a desired algorithm for solving matrix games. Only one is currently supported.
 
 ### Examples
 
-__Example A: a single environment vector acts against the traveler__
-
-	python basic_planner.py -o test/data/EXP2_region.tif  \    # Region 
-             -u test/data/water_u.tif \         # Vector field, u components
-             -v test/data/water_v.tif \         # Vector field, v components
-             -w 1 \                             # Weight of vector field
-             -e .5 \                            # Forecast/measurement error
-             -s 250,250 \                       # Traveler start coordinates
-             -t 550,550 \                       # Traveler goal coordinates
-             -c EXP1_cost2go.txt \              # File to save cost2go solution grid
-             -x EXP1_work2go.txt \              # File to save applied work grid
-             -a EXP1_actions.txt \              # File to save action grid
-             --pickle EXP1_history.pickle \     # File to save each iteration's python objects
-             --pandas EXP1_history.pandas \     # File to save convergence history csv
-             --plots  EXP1_history_plots \      # File (prefix) for plots generated
-             --bounds 200,200,600,600 \         # Define boundary (upperleft-y,upperleft-x,lowerright-y,lowerright-x)
-             -i 10 \                            # Number of dynamic-programming iterations 
-             --verbose                          # Display information regarding solver progress
-
-__Example B: two vectors, wind and water act against the traveler__
-
-    python basic_planner.py -o test/data/EXP1_region.png \  # Region
-             -u test/data/water_u.tif,test/data/wind_u.tif \
-             -v test/data/water_v.tif,test/data/wind_v.tif \
-             -w 0.75,0.75 \                     # Weight of vector field
-             -e .5,0.15 \                       # Forecast/measurement error
-             -s 250,250 \                       # Traveler start coordinates
-             -t 550,550 \                       # Traveler goal coordinates
-             -c EXP2_cost2go.txt \              # File to save cost2go solution grid
-             -x EXP2_work2go.txt \              # File to save applied work grid
-             -a EXP2_actions.txt \              # File to save action grid
-             --pickle EXP2_history.pickle \     # File to save each iteration's python objects
-             --pandas EXP2_history.pandas \     # File to save convergence history csv
-             --plots  EXP2_history_plots \      # File (prefix) for plots generated
-             --bounds 200,200,600,600 \         # Define boundary (upperleft-y,upperleft-x,lowerright-y,lowerright-x)
-             -i 10 \                            # Number of dynamic-programming iterations 
-             --verbose                          # Display information regarding solver progress
-
-__Example C: Same as example A, but reusing solutions for new startpoint__
-
-	python basic_planner.py -o test/data/EXP2_region.tif  \    # Region 
-             -u test/data/water_u.tif \         # Vector field, u components
-             -v test/data/water_v.tif \         # Vector field, v components
-             -w 1 \                             # Weight of vector field
-             -e .5 \                            # Forecast/measurement error
-             -s 350,240 \                       # Traveler start coordinates
-             -t 550,550 \                       # Traveler goal coordinates
-             -c EXP1_cost2go.txt \              # File to save cost2go solution grid
-             -x EXP1_work2go.txt \              # File to save applied work grid
-             -a EXP1_actions.txt \              # File to save action grid
-             --pickle EXP1_history.pickle \     # File to save each iteration's python objects
-             --pandas EXP1_history.pandas \     # File to save convergence history csv
-             --plots  EXP3_history_plots \      # File (prefix) for plots generated
-             --bounds 200,200,600,600 \         # Define boundary (upperleft-y,upperleft-x,lowerright-y,lowerright-x)
-             -i 10 \                            # Number of dynamic-programming iterations 
-             --verbose \                        # Display information regarding solver progress
-             -r                                 # Reuse solution
-
-__Example D: No uncertainty__
-
-	python basic_planner.py -o test/data/EXP2_region.tif  \    # Region 
-             -u test/data/water_u.tif \         # Vector field, u components
-             -v test/data/water_v.tif \         # Vector field, v components
-             -w 1 \                             # Weight of vector field
-             -s 350,240 \                       # Traveler start coordinates
-             -t 550,550 \                       # Traveler goal coordinates
-             -c EXP1_cost2go.txt \              # File to save cost2go solution grid
-             -x EXP1_work2go.txt \              # File to save applied work grid
-             -a EXP1_actions.txt \              # File to save action grid
-             --pickle EXP1_history.pickle \     # File to save each iteration's python objects
-             --pandas EXP1_history.pandas \     # File to save convergence history csv
-             --plots  EXP3_history_plots \      # File (prefix) for plots generated
-             --bounds 200,200,600,600 \         # Define boundary (upperleft-y,upperleft-x,lowerright-y,lowerright-x)
-             -i 10 \                            # Number of dynamic-programming iterations 
-             --verbose \                        # Display information regarding solver progress
-             -r                                 # Reuse solution
-
-__Example E: No environment forces__
-
-	python basic_planner.py -o test/data/EXP2_region.tif  \    # Region 
-             -s 350,240 \                       # Traveler start coordinates
-             -t 550,550 \                       # Traveler goal coordinates
-             -c EXP1_cost2go.txt \              # File to save cost2go solution grid
-             -x EXP1_work2go.txt \              # File to save applied work grid
-             -a EXP1_actions.txt \              # File to save action grid
-             --pickle EXP1_history.pickle \     # File to save each iteration's python objects
-             --pandas EXP1_history.pandas \     # File to save convergence history csv
-             --plots  EXP3_history_plots \      # File (prefix) for plots generated
-             --bounds 200,200,600,600 \         # Define boundary (upperleft-y,upperleft-x,lowerright-y,lowerright-x)
-             -i 10 \                            # Number of dynamic-programming iterations 
-             --verbose \                        # Display information regarding solver progress
-             -r                                 # Reuse solution
+A number of examples are found in _test/scripts/_
 
 ### Tools
 
@@ -145,6 +54,14 @@ __Example Tb: Solve a single game
        python solve_game \
            -g game.txt   \ # Input game as numpy txt archive
            -i 100          # Number of solver iterations
+
+### Misc
+
+If you need to convert an ASCII map or force component grid to geotiff:
+
+        gdal_translate -of "GTiff" fname.asc outname.tif
+
+See [StackOverflow](https://gis.stackexchange.com/a/62629) for more information. 
 
 ### Todo
 

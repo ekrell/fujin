@@ -46,8 +46,6 @@ def plotPathStatHistory(history_df, plotsfile, dpi = 100):
     plt.savefig(plotsfile + "_avg_diff.eps", bbox_inches = "tight", format = "eps", dpi = dpi)
     plt.clf()
 
-
-
 def plotRegion(occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10):
     occ_raster = gdal.Open(occupancyRasterFile)
     cols = occ_raster.RasterXSize
@@ -79,7 +77,7 @@ def plotPath(trace, waypoints, occupancyRasterFile, occupancyGrid, plotsfile = N
 
         ypoints = [occupancyGrid.shape[0] - w[0] - 0.5 for w in waypoints]
         xpoints = [w[1] + 0.5 for w in waypoints]
-        plt.plot(xpoints, ypoints, 'x--')
+        plt.plot(xpoints, ypoints, 'x--', linewidth=6, markersize=15)
         plt.scatter([trace[0][1] + 0.5], [occupancyGrid.shape[0] - trace[0][0] - 0.5],
                                  s = 550, marker = "D", color = "#ec73c9")
         plt.scatter([trace[len(trace) - 1][1] + 0.5], [occupancyGrid.shape[0] - trace[len(trace) - 1][0] - 0.5],
@@ -98,7 +96,7 @@ def plotPath(trace, waypoints, occupancyRasterFile, occupancyGrid, plotsfile = N
 
     return ax
 
-def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10, init = True, sampleInterval = 10, color = "black"):
+def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = None, width = 10, init = True, sampleInterval = 1, color = "black"):
 
     plt.close("all")
 
@@ -124,7 +122,7 @@ def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = N
 
         for row in range(0, rows - 1, sampleInterval):
             for col in range(0, cols - 1, sampleInterval):
-                ysamples.append(row + 0.5)
+                ysamples.append(row - 0.5)
                 xsamples.append(col + 0.5)
                 usamples.append(ugrid[row][col])
                 vsamples.append(vgrid[row][col])
@@ -139,7 +137,8 @@ def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = N
             vsamples_sum = vsamples_sum + vsamples
 
         ysamples = [rows - y for y in ysamples]
-        plt.quiver(xsamples[::], ysamples[::], usamples[::], vsamples[::], color = color)
+        plt.quiver(xsamples[::], ysamples[::], usamples[::], vsamples[::],
+                headwidth = 5, color = color)
 
         if plotsfile is not None:
             plt.savefig(plotsfile + "_environment_" + str(i) + ".eps", bbox_inches = "tight", format = "eps", dpi = 100)
@@ -148,17 +147,15 @@ def plotVector(ugrids, vgrids, occupancyRasterFile, occupancyGrid, plotsfile = N
     ax = plotRegion(occupancyRasterFile, occupancyGrid)
     plt.xlim(auto=False)
     plt.ylim(auto=False)
-    plt.quiver(xsamples[::], ysamples[::], usamples_sum[::], vsamples_sum[::], color = color)
+    plt.quiver(xsamples[::], ysamples[::], usamples_sum[::], vsamples_sum[::], color = color, width = .005)
 
     if plotsfile is not None:
         plt.savefig(plotsfile + "_environment" + ".eps", bbox_inches = "tight", format = "eps", dpi = 100)
 
     return ax
 
-
-
 def plotActions(actiongrid, action2radians, occupancyRasterFile, occupancyGrid, plotsfile = None,
-                width = 10, init = True, sampleInterval = 10, magnitude = 1):
+                width = 10, init = True, sampleInterval = 1, magnitude = 4):
 
     def action2uv(action, magnitude, action2radians):
         if action == '*' or action == '-' or action == ' ':
@@ -184,7 +181,6 @@ def plotActions(actiongrid, action2radians, occupancyRasterFile, occupancyGrid, 
             u, v = action2uv(actiongrid[row][col], magnitude, action2radians)
             usamples.append(u)
             vsamples.append(v)
-
 
     plt.close("all")
     ax = plotRegion(occupancyRasterFile, occupancyGrid)

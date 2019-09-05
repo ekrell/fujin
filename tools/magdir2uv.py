@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from math import acos, cos, sin
 import numpy as np
 from osgeo import gdal
