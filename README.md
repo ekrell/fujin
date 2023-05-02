@@ -1,6 +1,15 @@
 ## fujin
 
-A game-theoretic path planner. 
+A game-theoretic path planner.
+
+![poster](gtpp_poster.png)
+
+[Publication](https://ieeexplore.ieee.org/iel7/9140048/9147203/09147292.pdf?casa_token=fJufPz86q6oAAAAA:uN8RqFuwsaWv3fW0eVYpekKrWaLzh-5McAG_25qWrAq7xLM39ichWOK2rfwLmS8wuv5qRHVpFmbmVN0)
+
+		Krell, E., Carrillo, L. R. G., King, S. A., & Hespanha, J. P. (2020, July). 
+		Game Theoretic Potential Field for Autonomous Water Surface Vehicle Navigation Using Weather Forecasts. 
+		In 2020 American Control Conference (ACC) (pp. 2112-2117). IEEE.
+
 
 ### Based on
 
